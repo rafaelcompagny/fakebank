@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Profil - Cryptex Bank</title>
+  <link rel="shortcut icon" href="img/logo.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="profile">
+  <div class="container">
+    <div class="topbar">
+      <div>
+        <h1>Profil</h1>
+        <p class="small">Tes informations bancaires.</p>
+      </div>
+      <button id="logoutBtn" class="secondary">Se déconnecter</button>
+    </div>
+
+    <div class="card profile-hero">
+      <div class="profile-avatar">👤</div>
+      <div>
+        <h2 id="profileName">Chargement...</h2>
+        <p class="small" id="profileEmail"></p>
+        <p class="small" id="profileCreatedAt"></p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Solde total</h3>
+        <h2 id="profileTotalBalance">0 €</h2>
+      </div>
+
+      <div class="card">
+        <h3>Niveau bancaire</h3>
+        <h2 id="profileLevel">Niveau 1</h2>
+        <p class="small" id="profileXp">0 XP</p>
+        <div class="xp-bar">
+          <div id="profileXpBar"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Informations bancaires</h3>
+      <div class="profile-info-grid">
+        <p><strong>IBAN :</strong> <span id="profileIban"></span></p>
+        <p><strong>Carte :</strong> <span id="profileCard"></span></p>
+        <p><strong>Compte courant :</strong> <span id="profileCurrent"></span></p>
+        <p><strong>Compte épargne :</strong> <span id="profileSaving"></span></p>
+        <p><strong>Taux épargne :</strong> <span id="profileSavingRate"></span></p>
+        <p class="small">
+          <strong id="profileAdvisor"></strong>
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Dernières opérations</h3>
+      <div id="profileHistory"></div>
+    </div>
+  </div>
+
+  <nav>
+    <a href="home.html"><span>🏠</span><small>Accueil</small></a>
+    <a href="payments.html"><span>💸</span><small>Virements</small></a>
+    <a href="cards.html"><span>💳</span><small>Cartes</small></a>
+    <a href="markets.html"><span>📊</span><small>Marchés</small></a>
+    <a href="casino.html"><span>🎰</span><small>Casino</small></a>
+    <a href="profile.html"><span>👤</span><small>Profil</small></a>
+    <a id="adminNavLink" href="admin.html" style="display:none;"><span>🛡️</span><small>Admin</small></a>
+  </nav>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Connexion - Cryptex Bank</title>
+  <link rel="shortcut icon" href="img/logo.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-page">
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1>Cryptex Bank</h1>
+      <p class="small">Simulation bancaire réaliste</p>
+
+      <input id="email" type="email" placeholder="Email">
+      <input id="password" type="password" placeholder="Mot de passe">
+
+      <button id="loginBtn">Se connecter</button>
+      <button id="registerBtn" class="secondary">Créer un compte</button>
+      <button id="googleBtn" class="secondary">Continuer avec Google</button>
+      <button id="resetBtn" class="link-btn">Mot de passe oublié</button>
+
+      <p id="statusMsg" class="small"></p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { registerUser, loginUser, loginWithGoogle, resetPassword, watchAuth } from "./js/auth.js";
+    import { createUserProfile, getUserProfile } from "./js/db.js";
+    console.log("SCRIPT INDEX CHARGÉ");
+
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const statusMsg = document.getElementById("statusMsg");
+
+    function generateIban() {
+      const nums = Array.from({ length: 23 }, () => Math.floor(Math.random() * 10)).join("");
+      return "FR76" + nums;
+    }
+
+    function createDefaultProfile(user) {
+      const name = user.displayName || user.email.split("@")[0];
+
+      return {
+        email: user.email,
+        username: name,
+        displayName: name,
+        createdAt: Date.now(),
+        isAdmin: false,
+
+        accounts: {
+          courant: 1000,
+          epargne: 0
+        },
+
+        activeAccount: "courant",
+        iban: generateIban(),
+
+        card: {
+          type: "classic",
+          pin: null,
+          blocked: false
+        },
+
+        xp: 0,
+        history: ["Compte créé avec 1 000 € offerts"],
+
+        loans: [],
+        contacts: [],
+        investments: {},
+        realEstate: {},
+        crypto: {
+          currentAsset: "BTC",
+          assets: {}
+        },
+
+        advisor: "Camille Martin",
+
+        lastInterestPayment: Date.now(),
+        lastTaxPayment: Date.now()
+      };
+    }
+
+    async function ensureProfile(user) {
+      console.log("USER UID :", user.uid);
+
+      const existing = await getUserProfile(user.uid);
+      console.log("PROFIL EXISTANT :", existing);
+
+      if (!existing) {
+        const profile = createDefaultProfile(user);
+        console.log("CREATION PROFIL :", profile);
+
+        await createUserProfile(user.uid, profile);
+
+        console.log("PROFIL CREE DANS FIRESTORE");
+      }
+    }
+    
+    document.getElementById("registerBtn").onclick = async () => {
+      console.log("CLIC CREER COMPTE");
+
+      try {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        console.log("EMAIL :", email);
+
+        if (!email || !password) {
+          statusMsg.innerText = "Email et mot de passe obligatoires.";
+          return;
+        }
+
+        const cred = await registerUser(email, password);
+        console.log("COMPTE AUTH CREE :", cred.user.uid);
+
+        await ensureProfile(cred.user);
+        console.log("PROFIL FIRESTORE OK");
+
+        window.location.href = "home.html";
+      } catch (e) {
+        console.error("ERREUR CREATION COMPTE :", e);
+        statusMsg.innerText = e.message;
+      }
+    };
+
+    document.getElementById("loginBtn").onclick = async () => {
+      try {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        if (!email || !password) return statusMsg.innerText = "Email et mot de passe obligatoires.";
+
+        await loginUser(email, password);
+        window.location.href = "home.html";
+      } catch (e) {
+        statusMsg.innerText = e.message;
+      }
+    };
+
+    document.getElementById("googleBtn").onclick = async () => {
+      try {
+        const cred = await loginWithGoogle();
+        await ensureProfile(cred.user);
+        window.location.href = "home.html";
+      } catch (e) {
+        statusMsg.innerText = e.message;
+      }
+    };
+
+    document.getElementById("resetBtn").onclick = async () => {
+      try {
+        const email = emailInput.value.trim();
+        if (!email) return statusMsg.innerText = "Entre ton email.";
+        await resetPassword(email);
+        statusMsg.innerText = "Email de réinitialisation envoyé.";
+      } catch (e) {
+        statusMsg.innerText = e.message;
+      }
+    };
+  </script>
+</body>
+</html>

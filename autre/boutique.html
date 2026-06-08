@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Boutique - Cryptex Bank</title>
+  <link rel="shortcut icon" href="img/logo.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="shop">
+  <div class="container shop-page">
+    <div class="topbar">
+      <h1 class="shop-title">Boutique</h1>
+      <div class="top-actions">
+        <button id="newsBellBtn" class="secondary news-bell-btn">
+          🔔
+          <span id="newsUnreadDot" class="news-unread-dot" style="display:none;"></span>
+        </button>
+        <button class="btn-link secondary" id="logoutBtn">Se déconnecter</button>
+      </div>
+    </div>
+
+    <div class="card event-banner">
+      <h2>🚀 Event de lancement</h2>
+      <p>-20% boutique • x5 argent total</p>
+      <p>Pour tout achat sur la boutique avec du vrai argent veuillez entrez le code : EVENT20</p>
+    </div>
+
+    <section class="shop-hero">
+      <div class="shop-hero-header">
+        <h2>Boosts premium</h2>
+        <p class="small">Fonctionnalités spéciales, cosmétiques et packs limités.</p>
+      </div>
+      <div id="featuredShop" class="featured-shop-row"></div>
+    </section>
+
+    <section class="shop-section">
+      <div class="shop-section-head">
+        <h2>🎁 Lootbox</h2>
+        <p class="small">Ouvre des coffres pour gagner des récompenses aléatoires.</p>
+      </div>
+      <div id="lootboxGrid" class="shop-grid"></div>
+    </section>
+
+    <div id="lootboxModal" class="lootbox-modal" style="display:none;">
+      <div class="lootbox-modal-content">
+        <button id="closeLootboxModalBtn" class="secondary">Fermer</button>
+        <div id="lootboxAnimation" class="lootbox-animation">🎁</div>
+        <h2 id="lootboxResultTitle">Ouverture...</h2>
+        <p id="lootboxResultText" class="small"></p>
+      </div>
+    </div>
+
+    <div id="lootboxInfoModal" class="lootbox-modal" style="display:none;">
+      <div class="lootbox-modal-content">
+        <button id="closeLootboxInfoBtn" class="secondary">Fermer</button>
+        <h2>Probabilités</h2>
+        <div id="lootboxInfoContent"></div>
+      </div>
+    </div>
+
+    <section class="shop-section limited-offer-section">
+      <div class="shop-section-head">
+        <h2>🔥 Offre limitée</h2>
+        <p class="small" id="limitedOfferTimer">Chargement...</p>
+      </div>
+      <div id="limitedOfferBox"></div>
+    </section>
+
+    <section class="shop-section">
+      <div class="shop-section-head">
+        <h2>Packs d'argent</h2>
+        <p class="small">Achats, paiements avec Stripe.</p>
+      </div>
+      <div id="moneyPacksGrid" class="shop-grid"></div>
+    </section>
+
+    <section class="shop-section">
+      <div class="shop-section-head">
+        <h2>Packs et objets</h2>
+        <p class="small">Cartes, visuels, autoclicker et offres spéciales.</p>
+      </div>
+      <div id="premiumPacksGrid" class="shop-grid shop-grid-large"></div>
+    </section>
+  </div>
+
+  <nav>
+    <a href="home.html"><span>🏠</span><small>Accueil</small></a>
+    <a href="boutique.html"><span>🛒</span><small>Boutique</small></a>
+    <a href="marches.html"><span>📈</span><small>Marchés</small></a>
+    <a href="payments.html"><span>💸</span><small>Paiement</small></a>
+    <a href="mission.html"><span>🎯</span><small>Missions</small></a>
+    <a href="leaderboard.html"><span>🏆</span><small>Top</small></a>
+    <a href="profile.html"><span>👤</span><small>Profil</small></a>
+    <a id="adminNavLink" href="admin.html" style="display:none;"><span>🛡️</span><small>Admin</small></a>
+  </nav>
+  
+  <div id="newsPopup" class="news-popup" style="display:none;">
+    <div class="news-popup-content">
+      <div class="row">
+        <h3>📰 News</h3>
+        <button id="closeNewsPopupBtn" class="secondary">Fermer</button>
+      </div>
+      <div id="newsPopupContent">Chargement...</div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

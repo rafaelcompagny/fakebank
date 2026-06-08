@@ -1,0 +1,25 @@
+rafael-bank
+├── img/logo.jpg
+├── js/ app.js
+├── js/ db.js
+├── js/ firebase.js
+├── js/ auth.js
+├── css/ style.css
+├── index.html
+├── home.html
+├── payments.html
+├── cards.html
+├── markets.html
+├── casino.html
+├── profile.html
+├── admin.html
+└── recap.txt
+
+Maintenant Cryptex Bank
+
+
+© 2026 Rafael Compagny — Micro-entreprise · Tous droits réservés
+
+    watchAuth((user) => {
+      if (user) window.location.href = "home.html";
+    });

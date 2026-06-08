@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Admin - Cryptex Bank</title>
+  <link rel="shortcut icon" href="img/logo.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="admin">
+  <div class="container">
+    <div class="topbar">
+      <div>
+        <h1>Dashboard Admin</h1>
+        <p class="small">Gestion des clients Cryptex Bank.</p>
+      </div>
+      <button id="logoutBtn" class="secondary">Se déconnecter</button>
+    </div>
+
+    <div class="card">
+      <h3>Clients</h3>
+      <div id="adminUsersList"></div>
+    </div>
+  </div>
+
+  <nav>
+    <a href="home.html"><span>🏠</span><small>Accueil</small></a>
+    <a href="payments.html"><span>💸</span><small>Virements</small></a>
+    <a href="cards.html"><span>💳</span><small>Cartes</small></a>
+    <a href="markets.html"><span>📊</span><small>Marchés</small></a>
+    <a href="casino.html"><span>🎰</span><small>Casino</small></a>
+    <a href="profile.html"><span>👤</span><small>Profil</small></a>
+    <a id="adminNavLink" href="admin.html"><span>🛡️</span><small>Admin</small></a>
+  </nav>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

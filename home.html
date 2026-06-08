@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Accueil - Cryptex Bank</title>
+  <link rel="shortcut icon" href="img/logo.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="home">
+  <div class="container">
+    <div class="topbar">
+      <div>
+        <h1>Cryptex Bank</h1>
+        <p class="small" id="welcomeText">Bienvenue</p>
+      </div>
+      <button id="logoutBtn" class="secondary">Se déconnecter</button>
+    </div>
+
+    <div class="card hero-card">
+      <p class="small">Solde total</p>
+      <h2 id="totalBalance">0 €</h2>
+      <p class="small" id="ibanText">IBAN : chargement...</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Compte courant</h3>
+        <h2 id="currentBalance">0 €</h2>
+      </div>
+
+      <div class="card">
+        <h3>Compte épargne</h3>
+        <h2 id="savingBalance">0 €</h2>
+        <p class="small" id="savingRateText">Taux : 5% / an</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Épargne</h3>
+      <p class="small">Transfère de l’argent entre ton compte courant et ton épargne.</p>
+
+      <div class="row">
+        <input id="savingAmount" type="number" min="0" placeholder="Montant">
+        <button id="depositSavingBtn">Vers épargne</button>
+        <button id="withdrawSavingBtn" class="secondary">Vers courant</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Carte bancaire</h3>
+      <p id="cardTypeText">Carte classique</p>
+      <p class="small" id="cardAdvantagesText">Aucun avantage actif</p>
+    </div>
+
+    <div class="card">
+      <h3>Niveau bancaire</h3>
+      <p id="levelText">Niveau 1</p>
+      <p class="small" id="xpText">0 XP</p>
+      <div class="xp-bar">
+        <div id="xpBar"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Dernières opérations</h3>
+      <div id="history"></div>
+    </div>
+  </div>
+
+  <nav>
+    <a href="home.html"><span>🏠</span><small>Accueil</small></a>
+    <a href="payments.html"><span>💸</span><small>Virements</small></a>
+    <a href="cards.html"><span>💳</span><small>Cartes</small></a>
+    <a href="markets.html"><span>📊</span><small>Marchés</small></a>
+    <a href="casino.html"><span>🎰</span><small>Casino</small></a>
+    <a href="profile.html"><span>👤</span><small>Profil</small></a>
+    <a id="adminNavLink" href="admin.html" style="display:none;"><span>🛡️</span><small>Admin</small></a>
+  </nav>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

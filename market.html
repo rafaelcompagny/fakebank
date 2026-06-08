@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Marchés - Cryptex Bank</title>
+  <link rel="shortcut icon" href="img/logo.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="crypto">
+  <div class="container">
+    <div class="topbar">
+      <h2>Marchés</h2>
+      <div class="top-actions">
+        <button id="newsBellBtn" class="secondary news-bell-btn">
+          🔔
+          <span id="newsUnreadDot" class="news-unread-dot" style="display:none;"></span>
+        </button>
+        <button class="btn-link secondary" id="logoutBtn">Se déconnecter</button>
+      </div>
+    </div>
+
+    <div class="row market-tabs">
+      <button class="market-tab active" data-market-tab="crypto">📈 Crypto</button>
+      <button class="market-tab" data-market-tab="investments">🏢 Investissements</button>
+      <button class="market-tab" data-market-tab="realestate">🏠 Immobilier</button>
+      <button class="market-tab" data-market-tab="games">🎰 Jeux/Casino</button>
+    </div>
+
+    <div class="card news-card">
+      <h3>📰 News du marché</h3>
+      <h4 id="marketNewsTitle">Chargement...</h4>
+      <p id="marketNewsDescription" class="small"></p>
+    </div>
+
+    <p id="portfolio"></p>
+    <p id="cashBalance"></p>
+
+    <section id="cryptoMarketSection" class="market-section active">
+
+      <select id="assetSelect">
+        <option value="BTC">Bitcoin</option>
+        <option value="ETH">Ethereum</option>
+        <option value="AAPL">Apple</option>
+        <option value="TSLA">Tesla</option>
+        <option value="NVDA">Nvidia</option>
+        <option value="RCOP">Rafael Company</option>
+      </select>
+
+      <canvas id="cryptoChart" height="120"></canvas>
+
+      <p id="price"></p>
+      <p id="holding"></p>
+      <p id="pnl"></p>
+
+      <div id="adminCryptoPanel" class="card" style="display:none; margin-bottom:16px;">
+        <h3>Contrôle admin des cryptos</h3>
+        <p class="small">Active ou coupe l'évolution automatique, puis choisis les prix manuellement.</p>
+
+        <div class="row">
+          <button id="toggleCryptoModeBtn">Passer en mode manuel</button>
+        </div>
+
+        <div class="row">
+          <select id="adminAssetSelect">
+            <option value="BTC">Bitcoin</option>
+            <option value="ETH">Ethereum</option>
+            <option value="AAPL">Apple</option>
+            <option value="TSLA">Tesla</option>
+            <option value="NVDA">Nvidia</option>
+            <option value="RCOP">Rafael Company</option>
+          </select>
+
+          <input id="adminAssetPrice" type="number" min="0.01" step="0.01" placeholder="Nouveau prix">
+          <button id="adminSetCryptoPriceBtn">Appliquer le prix</button>
+        </div>
+
+        <p id="cryptoModeInfo" class="small"></p>
+      </div>
+
+      <div class="row">
+        <input id="investAmount" type="number" min="0" step="0.01" placeholder="Montant à investir">
+        <button id="buyBtn">Acheter</button>
+      </div>
+
+      <div class="row">
+        <input id="sellAmount" type="number" min="0" step="0.000001" placeholder="Quantité à vendre">
+        <button id="sellPartialBtn">Vendre une partie</button>
+        <button class="secondary" id="sellAllBtn">Vendre tout</button>
+      </div>
+
+      <h3>Transactions</h3>
+      <div id="cryptoHistory"></div>
+    </section>
+
+    <section id="investmentsMarketSection" class="market-section">
+      <div class="card" style="margin-top:16px;">
+        <h3>Investissements passifs</h3>
+        <p>Attention, quand vous vous déconnecter, vous gagnerais que pour 2h de revenus passif</p>
+        <p class="small" id="investmentIncomeInfo">Revenus passifs : 0 €/sec</p>
+        <div id="investmentsShop" class="investment-grid"></div>
+      </div>
+    </section>
+
+    <section id="realEstateMarketSection" class="market-section">
+      <div class="card" style="margin-top:16px;">
+        <h3>Marché immobilier</h3>
+        <p>Attention, quand vous vous déconnecter, vous gagnerais que pour 2h de revenus passif</p>
+        <p class="small" id="realEstateIncomeInfo">Revenus immobiliers : 0 €/sec</p>
+        <div id="realEstateShop" class="investment-grid"></div>
+      </div>
+    </section>
+
+    <section id="gamesMarketSection" class="market-section">
+      <div class="card" style="margin-top:16px;">
+        <h3>🎰 Jeux & Casino</h3>
+        <p class="small">Mini-jeux avec argent fictif.</p>
+
+        <div class="game-card">
+          <h3>🪙 Pile ou Face</h3>
+          <p class="small">Mise ton argent et tente de doubler ta mise.</p>
+
+          <input id="coinflipBet" type="number" min="1" placeholder="Montant à miser">
+
+          <div class="row" style="margin-top:10px;">
+            <button id="betHeadsBtn">Pile</button>
+            <button id="betTailsBtn">Face</button>
+          </div>
+
+          <p id="coinflipResult" class="small"></p>
+        </div>
+
+        <div class="game-card slot-machine-card">
+          <h3>🎰 Machine à sous</h3>
+          <p class="small">Mise ton argent et tente de gagner argent ou boost temporaire.</p>
+
+          <input id="slotBet" type="number" min="1" placeholder="Montant à miser">
+
+          <div class="slot-reels">
+            <div id="slotReel1" class="slot-reel">❔</div>
+            <div id="slotReel2" class="slot-reel">❔</div>
+            <div id="slotReel3" class="slot-reel">❔</div>
+          </div>
+
+          <div class="row">
+            <button id="playSlotBtn">Lancer</button>
+            <button id="slotInfoBtn" class="secondary">?</button>
+          </div>
+
+          <p id="slotResult" class="small"></p>
+        </div>
+
+        <div class="game-card mystery-chest-card">
+          <h3>🎁 Coffre mystère</h3>
+          <p class="small">Achète un coffre et découvre une récompense aléatoire.</p>
+
+          <input id="chestBet" type="number" min="1" placeholder="Prix du coffre">
+
+          <div class="chest-animation" id="chestAnimation">🎁</div>
+
+          <div class="row">
+            <button id="openChestBtn">Ouvrir le coffre</button>
+            <button id="chestInfoBtn" class="secondary">?</button>
+          </div>
+
+          <p id="chestResult" class="small"></p>
+        </div>
+
+        <div class="game-card fortune-wheel-card">
+          <h3>🎡 Roue de la fortune</h3>
+          <p class="small">Mise ton argent et fais tourner la roue.</p>
+
+          <input id="wheelBet" type="number" min="1" placeholder="Montant à miser">
+
+          <div class="wheel-wrap">
+            <div class="wheel-area">
+              <div class="wheel-pointer">▼</div>
+              <div id="fortuneWheel" class="fortune-wheel real-wheel">
+                <span>💰</span><span>x2</span><span>x5</span><span>🎁</span><span>x10</span><span>💎</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <button id="spinWheelBtn">Tourner</button>
+            <button id="wheelInfoBtn" class="secondary">?</button>
+          </div>
+
+          <p id="wheelResult" class="small"></p>
+        </div>
+
+        <div class="game-card roulette-card">
+          <h3>🎲 Roulette</h3>
+          <p class="small">Choisis rouge/noir ou pair/impair.</p>
+
+          <input id="rouletteBet" type="number" min="1" placeholder="Montant à miser">
+
+          <select id="rouletteChoice">
+            <option value="red">Rouge</option>
+            <option value="black">Noir</option>
+            <option value="even">Pair</option>
+            <option value="odd">Impair</option>
+          </select>
+
+          <div class="wheel-area">
+            <div class="wheel-pointer">▼</div>
+            <div id="rouletteWheel" class="roulette-wheel real-roulette">
+              <span>0</span><span>R</span><span>N</span><span>P</span><span>I</span><span>R</span><span>N</span><span>💰</span>
+            </div>
+          </div>
+
+          <div class="row">
+            <button id="playRouletteBtn">Jouer</button>
+            <button id="rouletteInfoBtn" class="secondary">?</button>
+          </div>
+
+          <p id="rouletteResult" class="small"></p>
+        </div>
+
+        <div class="game-card double-card">
+          <h3>💣 Double ou rien</h3>
+          <p class="small">Gagne pour doubler ta mise, ou perds tout.</p>
+
+          <input id="doubleBet" type="number" min="1" placeholder="Montant à miser">
+
+          <div class="double-box" id="doubleBox">💣</div>
+
+          <div class="row">
+            <button id="playDoubleBtn">Tenter</button>
+            <button id="doubleInfoBtn" class="secondary">?</button>
+          </div>
+
+          <p id="doubleResult" class="small"></p>
+        </div>
+
+        <div class="game-card blackjack-card">
+          <h3>🃏 Blackjack</h3>
+          <p class="small">Approche-toi de 21 sans dépasser. Le croupier joue après toi.</p>
+
+          <input id="blackjackBet" type="number" min="1" placeholder="Montant à miser">
+
+          <div class="casino-table">
+            <h4>Croupier</h4>
+            <div id="dealerCards" class="cards-row"></div>
+            <p id="dealerScore" class="small">Score : 0</p>
+
+            <h4>Toi</h4>
+            <div id="playerCards" class="cards-row"></div>
+            <p id="playerScore" class="small">Score : 0</p>
+          </div>
+
+          <div class="row">
+            <button id="startBlackjackBtn">Commencer</button>
+            <button id="hitBlackjackBtn" disabled>Tirer</button>
+            <button id="standBlackjackBtn" disabled>Rester</button>
+          </div>
+
+          <p id="blackjackResult" class="small"></p>
+        </div>
+
+        <div class="game-card poker-card">
+          <h3>♠️ Poker IA</h3>
+          <p class="small">Affronte une IA sur une main rapide. La meilleure combinaison gagne.</p>
+
+          <input id="pokerBet" type="number" min="1" placeholder="Montant à miser">
+
+          <div class="casino-table">
+            <h4>Ta main</h4>
+            <div id="pokerPlayerCards" class="cards-row"></div>
+
+            <h4>Main IA</h4>
+            <div id="pokerAiCards" class="cards-row"></div>
+          </div>
+
+          <div class="row">
+            <button id="playPokerBtn">Jouer</button>
+            <button id="pokerInfoBtn" class="secondary">?</button>
+          </div>
+
+          <p id="pokerResult" class="small"></p>
+        </div>
+
+      </div>
+
+      <h3>Transactions</h3>
+      <div id="cryptoHistory"></div>
+    </section>
+
+
+  </div>
+
+  <nav>
+    <a href="home.html"><span>🏠</span><small>Accueil</small></a>
+    <a href="boutique.html"><span>🛒</span><small>Boutique</small></a>
+    <a href="marches.html"><span>📈</span><small>Marchés</small></a>
+    <a href="payments.html"><span>💸</span><small>Paiement</small></a>
+    <a href="mission.html"><span>🎯</span><small>Missions</small></a>
+    <a href="leaderboard.html"><span>🏆</span><small>Top</small></a>
+    <a href="profile.html"><span>👤</span><small>Profil</small></a>
+    <a id="adminNavLink" href="admin.html" style="display:none;"><span>🛡️</span><small>Admin</small></a>
+  </nav>
+
+  <div id="gameInfoModal" class="lootbox-modal" style="display:none;">
+    <div class="lootbox-modal-content">
+      <button id="closeGameInfoBtn" class="secondary">Fermer</button>
+      <h2 id="gameInfoTitle">Probabilités</h2>
+      <div id="gameInfoContent"></div>
+    </div>
+  </div>
+
+  <div id="newsPopup" class="news-popup" style="display:none;">
+    <div class="news-popup-content">
+      <div class="row">
+        <h3>📰 News</h3>
+        <button id="closeNewsPopupBtn" class="secondary">Fermer</button>
+      </div>
+      <div id="newsPopupContent">Chargement...</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Cartes - Cryptex Bank</title>
+  <link rel="shortcut icon" href="img/logo.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="cards">
+  <div class="container">
+    <div class="topbar">
+      <div>
+        <h1>Cartes bancaires</h1>
+        <p class="small">Choisis ta carte et sécurise ton compte.</p>
+      </div>
+      <button id="logoutBtn" class="secondary">Se déconnecter</button>
+    </div>
+
+    <div class="card bank-card-preview">
+      <div class="bank-card" id="bankCardVisual">
+        <div>
+          <h3>Cryptex Bank</h3>
+          <p id="cardOwner">CLIENT</p>
+        </div>
+        <h2 id="cardNumber">**** **** **** 4821</h2>
+        <p class="small" id="cardExtraInfo">EXP : **/** CVV :***</p>
+        <div class="bank-card-bottom">
+          <span id="cardTypeName">CLASSIQUE</span>
+          <span id="cardStatus">ACTIVE</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="pinSetupBox" class="card">
+        <h3>Code PIN</h3>
+        <p class="small" id="pinInfoText">Définis ton code PIN à 4 chiffres. Il ne pourra plus être modifié ici.</p>
+
+        <div class="row" id="pinCreateRow">
+            <input id="newPinInput" type="password" maxlength="4" placeholder="PIN 4 chiffres">
+            <button id="savePinBtn">Créer le PIN</button>
+        </div>
+
+        <div class="row" id="cardInfoRow" style="display:none;">
+            <button id="showCardInfoBtn">Voir les infos</button>
+        </div>
+    </div>
+
+    <div class="card">
+      <h3>Choisir une carte</h3>
+      <div id="cardsList" class="cards-grid"></div>
+    </div>
+  </div>
+
+  <nav>
+    <a href="home.html"><span>🏠</span><small>Accueil</small></a>
+    <a href="payments.html"><span>💸</span><small>Virements</small></a>
+    <a href="cards.html"><span>💳</span><small>Cartes</small></a>
+    <a href="markets.html"><span>📊</span><small>Marchés</small></a>
+    <a href="casino.html"><span>🎰</span><small>Casino</small></a>
+    <a href="profile.html"><span>👤</span><small>Profil</small></a>
+    <a id="adminNavLink" href="admin.html" style="display:none;"><span>🛡️</span><small>Admin</small></a>
+  </nav>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
