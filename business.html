@@ -3,23 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Admin - Cryptex Bank</title>
+  <title>Entreprise - Cryptex Bank</title>
   <link rel="shortcut icon" href="img/logo.png">
   <link rel="stylesheet" href="css/style.css">
+  
 </head>
-<body data-page="admin">
+<body data-page="business">
   <div class="container">
     <div class="topbar">
       <div>
-        <h1>Dashboard Admin</h1>
-        <p class="small">Gestion des clients Cryptex Bank.</p>
+        <h1>Entreprise</h1>
+        <p class="small">Analyse mensuelle de tes revenus et dépenses.</p>
       </div>
       <button id="logoutBtn" class="secondary">Se déconnecter</button>
     </div>
 
+    <div class="grid-2">
+      <div class="card">
+        <h3>Revenus du mois</h3>
+        <h2 id="monthlyIncome">0 €</h2>
+      </div>
+
+      <div class="card">
+        <h3>Dépenses du mois</h3>
+        <h2 id="monthlyExpense">0 €</h2>
+      </div>
+    </div>
+
     <div class="card">
-      <h3>Clients</h3>
-      <div id="adminUsersList"></div>
+      <h3>Courbe revenus / dépenses</h3>
+      <p class="small">Graphique bientôt disponible.</p>
+    </div>
+
+    <div class="card">
+      <h3>Détail mensuel</h3>
+      <div id="businessMonthlyList"></div>
     </div>
   </div>
 

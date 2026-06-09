@@ -57,8 +57,16 @@
     </div>
 
     <div class="card">
-      <h3>Dernières opérations</h3>
-      <div id="profileHistory"></div>
+      <h3>Agence & conseiller</h3>
+
+      <div class="profile-info-grid">
+        <p><strong>Conseiller :</strong> <span id="agencyAdvisor"></span></p>
+        <p><strong>Téléphone :</strong> <span id="agencyPhone"></span></p>
+        <p><strong>Email :</strong> <span id="agencyEmail"></span></p>
+        <p><strong>Agence :</strong> <span id="agencyName"></span></p>
+        <p><strong>Adresse :</strong> <span id="agencyAddress"></span></p>
+        <p><strong>Horaires :</strong> <span id="agencyHours"></span></p>
+      </div>
     </div>
   </div>
 
@@ -67,9 +75,15 @@
     <a href="payments.html"><span>💸</span><small>Virements</small></a>
     <a href="cards.html"><span>💳</span><small>Cartes</small></a>
     <a href="markets.html"><span>📊</span><small>Marchés</small></a>
+    <a id="businessNavLink" href="business.html" style="display:none;">
+      <span>🏢</span><small>Entreprise</small>
+    </a>
+    <a href="bank.html"><span>🏦</span><small>Banque</small></a>
     <a href="casino.html"><span>🎰</span><small>Casino</small></a>
     <a href="profile.html"><span>👤</span><small>Profil</small></a>
-    <a id="adminNavLink" href="admin.html" style="display:none;"><span>🛡️</span><small>Admin</small></a>
+    <a id="adminNavLink" href="admin.html" style="display:none;">
+      <span>🛡️</span><small>Admin</small>
+    </a>
   </nav>
 
   <script type="module" src="js/app.js"></script>

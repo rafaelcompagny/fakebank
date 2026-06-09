@@ -32,7 +32,7 @@
       <div class="card">
         <h3>Compte épargne</h3>
         <h2 id="savingBalance">0 €</h2>
-        <p class="small" id="savingRateText">Taux : 5% / an</p>
+        <p class="small" id="savingRateText">Taux : 5% / jour</p>
       </div>
     </div>
 
@@ -51,6 +51,7 @@
       <h3>Carte bancaire</h3>
       <p id="cardTypeText">Carte classique</p>
       <p class="small" id="cardAdvantagesText">Aucun avantage actif</p>
+      <p class="small" id="dailyFeesText">Frais journaliers : 0 €</p>
     </div>
 
     <div class="card">
@@ -73,9 +74,15 @@
     <a href="payments.html"><span>💸</span><small>Virements</small></a>
     <a href="cards.html"><span>💳</span><small>Cartes</small></a>
     <a href="markets.html"><span>📊</span><small>Marchés</small></a>
+    <a id="businessNavLink" href="business.html" style="display:none;">
+      <span>🏢</span><small>Entreprise</small>
+    </a>
+    <a href="bank.html"><span>🏦</span><small>Banque</small></a>
     <a href="casino.html"><span>🎰</span><small>Casino</small></a>
     <a href="profile.html"><span>👤</span><small>Profil</small></a>
-    <a id="adminNavLink" href="admin.html" style="display:none;"><span>🛡️</span><small>Admin</small></a>
+    <a id="adminNavLink" href="admin.html" style="display:none;">
+      <span>🛡️</span><small>Admin</small>
+    </a>
   </nav>
 
   <script type="module" src="js/app.js"></script>

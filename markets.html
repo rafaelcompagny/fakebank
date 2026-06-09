@@ -3,23 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Admin - Cryptex Bank</title>
+  <title>Marchés - Cryptex Bank</title>
   <link rel="shortcut icon" href="img/logo.png">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body data-page="admin">
+<body data-page="markets">
   <div class="container">
     <div class="topbar">
       <div>
-        <h1>Dashboard Admin</h1>
-        <p class="small">Gestion des clients Cryptex Bank.</p>
+        <h1>Marchés</h1>
+        <p class="small">Crypto, actions et immobilier.</p>
       </div>
       <button id="logoutBtn" class="secondary">Se déconnecter</button>
     </div>
 
+    <div class="row market-tabs">
+      <button class="market-tab active" data-tab="crypto">₿ Crypto</button>
+      <button class="market-tab" data-tab="stocks">📈 Actions</button>
+      <button class="market-tab" data-tab="realestate">🏠 Immobilier</button>
+    </div>
+
+    <section id="cryptoSection" class="market-section active">
+      <div class="card">
+        <h3>Crypto</h3>
+        <div id="cryptoList" class="market-grid"></div>
+      </div>
+    </section>
+
+    <section id="stocksSection" class="market-section">
+      <div class="card">
+        <h3>Actions</h3>
+        <div id="stocksList" class="market-grid"></div>
+      </div>
+    </section>
+
+    <section id="realestateSection" class="market-section">
+      <div class="card">
+        <h3>Immobilier</h3>
+        <div id="realEstateList" class="market-grid"></div>
+      </div>
+    </section>
+
     <div class="card">
-      <h3>Clients</h3>
-      <div id="adminUsersList"></div>
+      <h3>Historique marchés</h3>
+      <div id="marketHistory"></div>
     </div>
   </div>
 

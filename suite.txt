@@ -1,0 +1,214 @@
+Avec plaisir 😄 Tu as énormément avancé aujourd'hui. Franchement, la base de **Cryptex Bank Réaliste** est déjà très solide.
+
+# ✅ Ce qui est terminé
+
+### Auth & Firebase
+
+* Inscription
+* Connexion
+* Google Login
+* Réinitialisation mot de passe
+* Création automatique du profil
+
+### Banque
+
+* Compte courant
+* Compte épargne
+* Intérêts automatiques
+* XP bancaire
+* Historique
+* Conseiller bancaire
+* IBAN unique
+
+### Virements
+
+* Virements entre joueurs
+* Contacts enregistrés
+* Historique des virements
+
+### Cartes
+
+* Classique
+* Verte
+* Gold
+* Black
+* Premium
+* PIN unique
+* Numéro de carte unique
+* CVV unique
+* Date d'expiration automatique
+* Affichage sécurisé des infos
+
+### Profil
+
+* Niveau bancaire
+* XP
+* Historique paginé
+* Informations bancaires
+
+### Admin
+
+* Voir tous les comptes
+* Voir les emails
+* Voir les IBAN
+* Voir les PIN
+* Ajouter de l'argent
+* Retirer de l'argent
+* Historique paginé
+
+---
+
+# 🚀 Programme de demain
+
+## 1️⃣ Markets.html (priorité n°1)
+
+Créer un vrai marché financier.
+
+### Crypto
+
+* Bitcoin
+* Ethereum
+* Solana
+* XRP
+
+### Actions
+
+* Apple
+* Microsoft
+* Nvidia
+* Tesla
+* Amazon
+
+### Fonctionnalités
+
+* Acheter
+* Vendre
+* Historique
+* Graphique
+* Actualisation automatique
+
+---
+
+## 2️⃣ Immobilier
+
+Dans Marchés :
+
+🏠 Immobilier
+
+* Studio
+* Appartement
+* Maison
+* Immeuble
+* Hôtel
+
+Chaque bien :
+
+* Prix d'achat
+* Revenus quotidiens
+* Valeur qui évolue
+
+---
+
+## 3️⃣ Revenus passifs
+
+Toutes les minutes :
+
+```txt
+Immobilier
++
+Épargne
++
+Dividendes actions
+```
+
+Ajout automatique au compte.
+
+---
+
+## 4️⃣ Crédits / Prêts
+
+Page Banque :
+
+* Prêt étudiant
+* Prêt auto
+* Prêt immobilier
+* Crédit consommation
+
+Avec :
+
+* taux
+* mensualités
+* remboursement anticipé
+
+---
+
+## 5️⃣ Transactions réalistes
+
+Historique plus joli :
+
+```txt
+💸 Virement envoyé
+📈 Achat action
+₿ Achat Bitcoin
+🏠 Achat immobilier
+🏦 Intérêts épargne
+```
+
+---
+
+## 6️⃣ Notifications
+
+Cloche en haut à droite :
+
+```txt
+🔔
+```
+
+Notifications :
+
+* Virement reçu
+* Crédit accepté
+* Intérêts reçus
+* Revenus immobiliers
+* Dividendes
+
+---
+
+## 7️⃣ Casino
+
+Une fois la banque terminée :
+
+🎰 Machine à sous
+
+🎡 Roue
+
+🎲 Roulette
+
+🃏 Blackjack
+
+♠️ Poker IA
+
+💣 Double ou rien
+
+---
+
+# Plus tard (V2)
+
+### Banque ultra réaliste
+
+* RIB PDF
+* Relevés bancaires PDF
+* Cartes virtuelles
+* Cartes temporaires
+* Blocage de carte
+* Changement de plafond
+* Virements programmés
+* Comptes joints
+* Parrainage
+* Classement des plus riches
+
+---
+
+On repartira demain sur **Markets.html + Crypto + Actions + Immobilier**, c'est clairement la prochaine grosse étape. 🌙😴
+
+Bonne nuit Rafael, et à demain pour la suite de Cryptex Bank ! 🚀💳📈🏠

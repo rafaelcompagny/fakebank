@@ -13,6 +13,12 @@
       <h1>Cryptex Bank</h1>
       <p class="small">Simulation bancaire réaliste</p>
 
+      <input id="displayName" type="text" placeholder="Prénom / Nom">
+      <label class="checkbox-row">
+        <input id="isBusinessAccount" type="checkbox">
+        <span>Je crée un compte entreprise</span>
+      </label>
+
       <input id="email" type="email" placeholder="Email">
       <input id="password" type="password" placeholder="Mot de passe">
 
@@ -33,6 +39,8 @@
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
     const statusMsg = document.getElementById("statusMsg");
+    const displayNameInput = document.getElementById("displayName");
+    const isBusinessAccountInput = document.getElementById("isBusinessAccount");
 
     function generateIban() {
       const nums = Array.from({ length: 23 }, () => Math.floor(Math.random() * 10)).join("");
@@ -40,7 +48,8 @@
     }
 
     function createDefaultProfile(user) {
-      const name = user.displayName || user.email.split("@")[0];
+      const name = displayNameInput.value.trim() || user.displayName || user.email.split("@")[0];
+      const isBusiness = isBusinessAccountInput.checked;
 
       return {
         email: user.email,
@@ -75,7 +84,20 @@
           assets: {}
         },
 
-        advisor: "Camille Martin",
+        transactions: [],
+        lastRealEstateIncome: Date.now(),
+        lastBankFeePayment: Date.now(),
+
+        isBusiness,
+        advisor: isBusiness ? "Camille Martin — Conseiller entreprise" : "Camille Martin",
+        agency: {
+          advisor: isBusiness ? "Camille Martin — Conseiller entreprise" : "Camille Martin",
+          phone: "05 56 65 15 94",
+          email: "conseiller@cryptex-bank.fr",
+          name: "Cryptex Bank Bordeaux",
+          address: "10 cours de l’Intendance, 33000 Bordeaux",
+          hours: "Lun - Ven : 9h00 - 18h00 et Sam - Dim : 10h00 - 16h00"
+        },
 
         lastInterestPayment: Date.now(),
         lastTaxPayment: Date.now()
