@@ -2,49 +2,52 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Entreprise - Cryptex Bank</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conseiller - Cryptex Bank</title>
   <link rel="shortcut icon" href="img/logo.png">
   <link rel="stylesheet" href="css/style.css">
-  
 </head>
-<body data-page="business">
+<body data-page="advisor">
   <div class="container">
     <div class="topbar">
       <div>
-        <h1>Entreprise</h1>
-        <p class="small">Analyse mensuelle de tes revenus et dépenses.</p>
+        <h1>Conseiller</h1>
+        <p class="small">Contactez votre conseiller Cryptex Bank.</p>
       </div>
+
       <div class="top-actions">
         <button id="notificationBellBtn" class="secondary notification-bell">
           🔔
           <span id="notificationDot" class="notification-dot" style="display:none;"></span>
         </button>
-
         <button id="logoutBtn" class="secondary">Se déconnecter</button>
       </div>
     </div>
 
-    <div class="grid-2">
-      <div class="card">
-        <h3>Revenus du mois</h3>
-        <h2 id="monthlyIncome">0 €</h2>
-      </div>
-
-      <div class="card">
-        <h3>Dépenses du mois</h3>
-        <h2 id="monthlyExpense">0 €</h2>
-      </div>
+    <div class="card advisor-card">
+      <h3 id="advisorName">Conseiller</h3>
+      <p class="small" id="advisorInfo">Chargement...</p>
     </div>
 
     <div class="card">
-      <h3>Courbe revenus / dépenses</h3>
-      <p class="small">Graphique bientôt disponible.</p>
+      <h3>Nouvelle demande</h3>
+
+      <div class="advisor-actions">
+        <button class="advisor-topic active" data-topic="pin">Changer mon PIN</button>
+        <button class="advisor-topic" data-topic="overdraft">Augmenter mon découvert</button>
+        <button class="advisor-topic" data-topic="lost_card">Carte volée/perdue</button>
+        <button class="advisor-topic" data-topic="loan">Demande de prêt</button>
+        <button class="advisor-topic" data-topic="other">Autre demande</button>
+      </div>
+
+      <textarea id="advisorMessage" placeholder="Expliquez votre demande..."></textarea>
+
+      <button id="sendAdvisorMessageBtn">Envoyer au conseiller</button>
     </div>
 
     <div class="card">
-      <h3>Détail mensuel</h3>
-      <div id="businessMonthlyList"></div>
+      <h3>Messages</h3>
+      <div id="advisorMessagesList"></div>
     </div>
   </div>
 
@@ -91,7 +94,6 @@
     </a>
   </nav>
 
-
   <div id="notificationsPopup" class="notifications-popup" style="display:none;">
     <div class="notifications-card">
       <div class="row">
@@ -102,6 +104,7 @@
       <div id="notificationsList"></div>
     </div>
   </div>
+
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

@@ -14,10 +14,27 @@
       <p class="small">Simulation bancaire réaliste</p>
 
       <input id="displayName" type="text" placeholder="Prénom / Nom">
-      <label class="checkbox-row">
-        <input id="isBusinessAccount" type="checkbox">
-        <span>Je crée un compte entreprise</span>
-      </label>
+      <div id="businessAccountCard" class="account-type-card">
+        <div class="account-type-header">
+          <div>
+            <h4>🏢 Compte Entreprise</h4>
+            <p>Accès aux outils professionnels</p>
+          </div>
+
+          <input id="isBusinessAccount" type="checkbox">
+        </div>
+
+        <ul>
+          <li>📊 Tableau de bord entreprise</li>
+          <li>📈 Revenus & dépenses mensuels</li>
+          <li>🏦 Futurs prêts professionnels</li>
+          <li>👨‍💼 Conseiller entreprise dédié</li>
+        </ul>
+
+        <div class="account-type-badge">
+          Professionnel
+        </div>
+      </div>
 
       <input id="email" type="email" placeholder="Email">
       <input id="password" type="password" placeholder="Mot de passe">
@@ -71,6 +88,9 @@
           pin: null,
           blocked: false
         },
+        cardBlocked: false,
+        notifications: [],
+        advisorMessages: [],
 
         xp: 0,
         history: ["Compte créé avec 1 000 € offerts"],
@@ -88,6 +108,9 @@
         lastRealEstateIncome: Date.now(),
         lastBankFeePayment: Date.now(),
 
+        creditScore: 500,
+        lastLoanPaymentCheck: Date.now(),
+
         isBusiness,
         advisor: isBusiness ? "Camille Martin — Conseiller entreprise" : "Camille Martin",
         agency: {
@@ -102,6 +125,25 @@
         lastInterestPayment: Date.now(),
         lastTaxPayment: Date.now()
       };
+    }
+
+    const businessCheckbox =
+      document.getElementById("isBusinessAccount");
+
+    const businessCard =
+      document.getElementById("businessAccountCard");
+
+    if (businessCheckbox && businessCard) {
+
+      businessCheckbox.addEventListener("change", () => {
+
+        businessCard.classList.toggle(
+          "active",
+          businessCheckbox.checked
+        );
+
+      });
+
     }
 
     async function ensureProfile(user) {

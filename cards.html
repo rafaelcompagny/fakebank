@@ -14,7 +14,14 @@
         <h1>Cartes bancaires</h1>
         <p class="small">Choisis ta carte et sécurise ton compte.</p>
       </div>
-      <button id="logoutBtn" class="secondary">Se déconnecter</button>
+      <div class="top-actions">
+        <button id="notificationBellBtn" class="secondary notification-bell">
+          🔔
+          <span id="notificationDot" class="notification-dot" style="display:none;"></span>
+        </button>
+
+        <button id="logoutBtn" class="secondary">Se déconnecter</button>
+      </div>
     </div>
 
     <div class="card bank-card-preview">
@@ -27,15 +34,15 @@
         <p class="small" id="cardExtraInfo">EXP : **/** CVV :***</p>
         <div class="bank-card-bottom">
           <span id="cardTypeName">CLASSIQUE</span>
-          <span id="cardStatus">ACTIVE</span>
+          <p id="cardStatus"></p>
         </div>
       </div>
     </div>
-
+<br>
     <div id="pinSetupBox" class="card">
-        <h3>Code PIN</h3>
+        <h3>Code PIN</h3><br>
         <p class="small" id="pinInfoText">Définis ton code PIN à 4 chiffres. Il ne pourra plus être modifié ici.</p>
-
+<br>
         <div class="row" id="pinCreateRow">
             <input id="newPinInput" type="password" maxlength="4" placeholder="PIN 4 chiffres">
             <button id="savePinBtn">Créer le PIN</button>
@@ -45,12 +52,47 @@
             <button id="showCardInfoBtn">Voir les infos</button>
         </div>
     </div>
+<br>
+    <div class="card-actions">
 
+      <button id="toggleCardBtn">
+        Désactiver la carte
+      </button>
+
+    </div>
+<br>
     <div class="card">
       <h3>Choisir une carte</h3>
       <div id="cardsList" class="cards-grid"></div>
     </div>
   </div>
+
+  <footer class="cryptex-footer">
+
+    <div class="footer-logo">
+        <h2>CRYPTEX BANK</h2>
+        <p>La nouvelle génération de banque virtuelle.</p>
+    </div>
+
+    <div class="footer-links">
+        <a href="partenaires.html">Partenaires</a>
+        <a href="mentions.html">Mentions légales</a>
+        <a href="confidentialite.html">Confidentialité</a>
+    </div>
+
+    <div class="footer-team">
+        <p><strong>Fondateur :</strong> Rafael Granero</p>
+        <p><strong>Version :</strong> V10 Firebase</p>
+    </div>
+
+</footer>
+
+</br>
+</br>
+</br>
+</br>
+</br>
+</br>
 
   <nav>
     <a href="home.html"><span>🏠</span><small>Accueil</small></a>
@@ -68,6 +110,17 @@
     </a>
   </nav>
 
+
+  <div id="notificationsPopup" class="notifications-popup" style="display:none;">
+    <div class="notifications-card">
+      <div class="row">
+        <h3>Notifications</h3>
+        <button id="closeNotificationsBtn" class="secondary">Fermer</button>
+      </div>
+
+      <div id="notificationsList"></div>
+    </div>
+  </div>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

@@ -58,73 +58,6 @@ Avec plaisir 😄 Tu as énormément avancé aujourd'hui. Franchement, la base d
 
 ---
 
-# 🚀 Programme de demain
-
-## 1️⃣ Markets.html (priorité n°1)
-
-Créer un vrai marché financier.
-
-### Crypto
-
-* Bitcoin
-* Ethereum
-* Solana
-* XRP
-
-### Actions
-
-* Apple
-* Microsoft
-* Nvidia
-* Tesla
-* Amazon
-
-### Fonctionnalités
-
-* Acheter
-* Vendre
-* Historique
-* Graphique
-* Actualisation automatique
-
----
-
-## 2️⃣ Immobilier
-
-Dans Marchés :
-
-🏠 Immobilier
-
-* Studio
-* Appartement
-* Maison
-* Immeuble
-* Hôtel
-
-Chaque bien :
-
-* Prix d'achat
-* Revenus quotidiens
-* Valeur qui évolue
-
----
-
-## 3️⃣ Revenus passifs
-
-Toutes les minutes :
-
-```txt
-Immobilier
-+
-Épargne
-+
-Dividendes actions
-```
-
-Ajout automatique au compte.
-
----
-
 ## 4️⃣ Crédits / Prêts
 
 Page Banque :
@@ -207,8 +140,30 @@ Une fois la banque terminée :
 * Parrainage
 * Classement des plus riches
 
----
 
-On repartira demain sur **Markets.html + Crypto + Actions + Immobilier**, c'est clairement la prochaine grosse étape. 🌙😴
-
-Bonne nuit Rafael, et à demain pour la suite de Cryptex Bank ! 🚀💳📈🏠
+🚀 Programme de demain
+🏦 Banque
+Simulation de prêt en temps réel
+Score bancaire
+Refus automatique selon le score
+Découvert autorisé selon la carte
+Assurance emprunteur
+Remboursement automatique quotidien
+Évolution du score bancaire
+📈 Marchés
+Finaliser les graphes
+Vérifier la mise à jour des prix
+Portefeuille plus détaillé
+Plus-values / moins-values visibles
+🔔 Notifications
+Virement reçu
+Intérêts reçus
+Revenus immobiliers
+Prêt accepté
+Frais bancaires prélevés
+📄 Plus tard
+Relevés PDF
+Messagerie conseiller
+Prêt professionnel
+Événements temporaires
+Casino complet

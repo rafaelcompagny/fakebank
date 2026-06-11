@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assurance - Cryptex Bank</title>
+<link rel="shortcut icon" href="img/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+
+<body data-page="insurance">
+  <div class="container">
+    <div class="topbar">
+      <div>
+        <h1>Assurances</h1>
+        <p class="small">Protégez vos crédits et votre score bancaire.</p>
+      </div>
+
+      <div class="top-actions">
+        <button id="notificationBellBtn" class="secondary notification-bell">
+          🔔
+          <span id="notificationDot" class="notification-dot" style="display:none;"></span>
+        </button>
+        <button id="logoutBtn" class="secondary">Se déconnecter</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Offres d’assurance</h3>
+      <div id="insuranceList" class="cards-grid"></div>
+    </div>
+<br>
+    <div class="card">
+      <h3>Mes assurances</h3>
+      <div id="myInsurances"></div>
+    </div>
+  </div>
+
+    <footer class="cryptex-footer">
+
+        <div class="footer-logo">
+            <h2>CRYPTEX BANK</h2>
+            <p>La nouvelle génération de banque virtuelle.</p>
+        </div>
+
+        <div class="footer-links">
+            <a href="partenaires.html">Partenaires</a>
+            <a href="mentions.html">Mentions légales</a>
+            <a href="confidentialite.html">Confidentialité</a>
+        </div>
+
+        <div class="footer-team">
+            <p><strong>Fondateur :</strong> Rafael Granero</p>
+            <p><strong>Version :</strong> V10 Firebase</p>
+        </div>
+
+    </footer>
+
+    </br>
+    </br>
+    </br>
+    </br>
+    </br>
+    </br>
+
+    <nav>
+    <a href="home.html"><span>🏠</span><small>Accueil</small></a>
+    <a href="payments.html"><span>💸</span><small>Virements</small></a>
+    <a href="cards.html"><span>💳</span><small>Cartes</small></a>
+    <a href="markets.html"><span>📊</span><small>Marchés</small></a>
+    <a id="businessNavLink" href="business.html" style="display:none;">
+        <span>🏢</span><small>Entreprise</small>
+    </a>
+    <a href="bank.html"><span>🏦</span><small>Banque</small></a>
+    <a href="casino.html"><span>🎰</span><small>Casino</small></a>
+    <a href="profile.html"><span>👤</span><small>Profil</small></a>
+    <a id="adminNavLink" href="admin.html" style="display:none;">
+        <span>🛡️</span><small>Admin</small>
+    </a>
+    </nav>
+
+
+    <div id="notificationsPopup" class="notifications-popup" style="display:none;">
+    <div class="notifications-card">
+        <div class="row">
+        <h3>Notifications</h3>
+        <button id="closeNotificationsBtn" class="secondary">Fermer</button>
+        </div>
+
+        <div id="notificationsList"></div>
+    </div>
+    </div>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

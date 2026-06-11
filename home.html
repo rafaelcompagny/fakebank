@@ -14,7 +14,14 @@
         <h1>Cryptex Bank</h1>
         <p class="small" id="welcomeText">Bienvenue</p>
       </div>
-      <button id="logoutBtn" class="secondary">Se déconnecter</button>
+      <div class="top-actions">
+        <button id="notificationBellBtn" class="secondary notification-bell">
+          🔔
+          <span id="notificationDot" class="notification-dot" style="display:none;"></span>
+        </button>
+
+        <button id="logoutBtn" class="secondary">Se déconnecter</button>
+      </div>
     </div>
 
     <div class="card hero-card">
@@ -45,14 +52,14 @@
         <button id="depositSavingBtn">Vers épargne</button>
         <button id="withdrawSavingBtn" class="secondary">Vers courant</button>
       </div>
-    </div>
+    </div><br>
 
     <div class="card">
       <h3>Carte bancaire</h3>
       <p id="cardTypeText">Carte classique</p>
       <p class="small" id="cardAdvantagesText">Aucun avantage actif</p>
       <p class="small" id="dailyFeesText">Frais journaliers : 0 €</p>
-    </div>
+    </div><br>
 
     <div class="card">
       <h3>Niveau bancaire</h3>
@@ -61,13 +68,40 @@
       <div class="xp-bar">
         <div id="xpBar"></div>
       </div>
-    </div>
+    </div><br>
 
     <div class="card">
       <h3>Dernières opérations</h3>
       <div id="history"></div>
     </div>
   </div>
+
+<footer class="cryptex-footer">
+
+    <div class="footer-logo">
+        <h2>CRYPTEX BANK</h2>
+        <p>La nouvelle génération de banque virtuelle.</p>
+    </div>
+
+    <div class="footer-links">
+        <a href="partenaires.html">Partenaires</a>
+        <a href="mentions.html">Mentions légales</a>
+        <a href="confidentialite.html">Confidentialité</a>
+    </div>
+
+    <div class="footer-team">
+        <p><strong>Fondateur :</strong> Rafael Granero</p>
+        <p><strong>Version :</strong> V10 Firebase</p>
+    </div>
+
+</footer>
+
+</br>
+</br>
+</br>
+</br>
+</br>
+</br>
 
   <nav>
     <a href="home.html"><span>🏠</span><small>Accueil</small></a>
@@ -77,13 +111,33 @@
     <a id="businessNavLink" href="business.html" style="display:none;">
       <span>🏢</span><small>Entreprise</small>
     </a>
-    <a href="bank.html"><span>🏦</span><small>Banque</small></a>
+    <a href="bank.html"><span>🏦</span><small>Prêt</small></a>
     <a href="casino.html"><span>🎰</span><small>Casino</small></a>
     <a href="profile.html"><span>👤</span><small>Profil</small></a>
     <a id="adminNavLink" href="admin.html" style="display:none;">
       <span>🛡️</span><small>Admin</small>
     </a>
   </nav>
+
+
+  <div id="notificationsPopup" class="notifications-popup" style="display:none;">
+    <div class="notifications-card">
+      <div class="row">
+        <h3>Notifications</h3>
+        <button id="closeNotificationsBtn" class="secondary">Fermer</button>
+      </div>
+
+      <div id="notificationsList"></div>
+    </div>
+  </div>
+
+  <div id="dailySummaryPopup" class="daily-summary-popup" style="display:none;">
+    <div class="daily-summary-card">
+      <h2>👋 Heureux de te revoir</h2>
+      <div id="dailySummaryContent"></div>
+      <button id="dailySummaryOkBtn">OK</button>
+    </div>
+  </div>
 
   <script type="module" src="js/app.js"></script>
 </body>

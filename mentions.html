@@ -3,52 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Entreprise - Cryptex Bank</title>
+  <title>Mentions Légales - Cryptex Bank</title>
   <link rel="shortcut icon" href="img/logo.png">
   <link rel="stylesheet" href="css/style.css">
-  
 </head>
-<body data-page="business">
-  <div class="container">
-    <div class="topbar">
-      <div>
-        <h1>Entreprise</h1>
-        <p class="small">Analyse mensuelle de tes revenus et dépenses.</p>
-      </div>
-      <div class="top-actions">
-        <button id="notificationBellBtn" class="secondary notification-bell">
-          🔔
-          <span id="notificationDot" class="notification-dot" style="display:none;"></span>
-        </button>
 
-        <button id="logoutBtn" class="secondary">Se déconnecter</button>
-      </div>
+<body>
+
+<section class="legal-page">
+
+    <h1>Mentions légales</h1>
+
+    <div class="legal-card">
+
+        <h2>Éditeur</h2>
+
+        <p>
+            Cryptex Bank est une application bancaire virtuelle et Physique
+            développée par Rafael Granero.
+        </p>
+
     </div>
 
-    <div class="grid-2">
-      <div class="card">
-        <h3>Revenus du mois</h3>
-        <h2 id="monthlyIncome">0 €</h2>
-      </div>
+    <div class="legal-card">
 
-      <div class="card">
-        <h3>Dépenses du mois</h3>
-        <h2 id="monthlyExpense">0 €</h2>
-      </div>
+        <h2>Hébergement</h2>
+
+        <p>
+            Application hébergée sur les services choisis par l'équipe Cryptex Bank.
+            Soit Rafael Compagny, et Data Base Rafael Compagny.
+        </p>
+
     </div>
 
-    <div class="card">
-      <h3>Courbe revenus / dépenses</h3>
-      <p class="small">Graphique bientôt disponible.</p>
+    <div class="legal-card">
+
+        <h2>Propriété intellectuelle</h2>
+
+        <p>
+            Tous les contenus présents sur Cryptex Bank (logos, interfaces,
+            textes, éléments graphiques et fonctionnalités) sont protégés
+            par le droit d'auteur.
+        </p>
+
     </div>
 
-    <div class="card">
-      <h3>Détail mensuel</h3>
-      <div id="businessMonthlyList"></div>
-    </div>
-  </div>
+    <div class="legal-card">
 
-  <footer class="cryptex-footer">
+        <h2>Limitation de responsabilité</h2>
+
+        <p>
+            Cryptex Bank est une vraie application bancaire et financier.
+            Tout manquemant des règles se verra punis par la loi.
+        </p>
+
+        <p>
+            Attention Jouer comporte des risques, parlait en.
+        </p>
+
+        <p>
+            Plusieur jeu sont proposé sur l'application, dans l'onglet casino.
+            Tout argent misé peut-être gagné comme perdu.
+            Attention jouer a des jeux d'argent peut entrainer une addictions. Parler en autours de vous.
+        </p>
+
+    </div>
+
+</section>
+
+<footer class="cryptex-footer">
 
     <div class="footer-logo">
         <h2>CRYPTEX BANK</h2>
@@ -92,16 +115,7 @@
   </nav>
 
 
-  <div id="notificationsPopup" class="notifications-popup" style="display:none;">
-    <div class="notifications-card">
-      <div class="row">
-        <h3>Notifications</h3>
-        <button id="closeNotificationsBtn" class="secondary">Fermer</button>
-      </div>
-
-      <div id="notificationsList"></div>
-    </div>
-  </div>
   <script type="module" src="js/app.js"></script>
+
 </body>
 </html>

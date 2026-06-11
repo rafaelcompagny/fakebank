@@ -1,5 +1,10 @@
 rafael-bank
+├── autre/boutique.html           (on utilise pas)
 ├── img/logo.jpg
+├── img/google.webp
+├── img/nordvpn.webp
+├── img/rafatech.webp
+├── img/visa.webp
 ├── js/ app.js
 ├── js/ db.js
 ├── js/ firebase.js
@@ -13,13 +18,15 @@ rafael-bank
 ├── casino.html
 ├── profile.html
 ├── admin.html
+├── advisor.html
+├── confidentialite.html
+├── insurance.html
+├── mentions.html
+├── partenaires.html
+├── suite.txt
 └── recap.txt
 
 Maintenant Cryptex Bank
 
 
 © 2026 Rafael Compagny — Micro-entreprise · Tous droits réservés
-
-    watchAuth((user) => {
-      if (user) window.location.href = "home.html";
-    });
