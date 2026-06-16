@@ -123,15 +123,16 @@ function requireActiveCard(profile) {
   return true;
 }
 
-async function adminChangeMoney(targetUid, mode) {
-  const input = document.querySelector(`.admin-money-input[data-uid="${targetUid}"]`);
-  const amount = Number(input?.value || 0);
+async function adminChangeMoney(currentUid, targetUid, mode) {
   const currentProfile = await getUserProfile(currentUid);
 
   if (!canModifyMoney(currentProfile)) {
     alert("Action refusée : seul un administrateur peut modifier l'argent.");
     return;
   }
+
+  const input = document.querySelector(`.admin-money-input[data-uid="${targetUid}"]`);
+  const amount = Number(input?.value || 0);
 
   if (!amount || amount <= 0) {
     alert("Montant invalide.");
@@ -143,6 +144,8 @@ async function adminChangeMoney(targetUid, mode) {
 
   profile.accounts = profile.accounts || { courant: 0, epargne: 0 };
   profile.history = profile.history || [];
+  profile.transactions = profile.transactions || [];
+  profile.notifications = profile.notifications || [];
 
   if (mode === "add") {
     profile.accounts.courant += amount;
@@ -161,8 +164,9 @@ async function adminChangeMoney(targetUid, mode) {
 
   await updateUserProfile(targetUid, {
     accounts: profile.accounts,
+    history: profile.history,
     transactions: profile.transactions,
-    history: profile.history
+    notifications: profile.notifications
   });
 }
 
