@@ -6,6 +6,7 @@
   <title>Profil - Cryptex Bank</title>
   <link rel="shortcut icon" href="img/logo.png">
   <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body data-page="profile">
   <div class="container">
@@ -68,6 +69,7 @@
 
       <div class="profile-info-grid">
         <p><strong>Conseiller :</strong> <span id="agencyAdvisor"></span></p>
+        <p><strong>Rôle :</strong> <span id="agencyAdvisorRole"></span></p>
         <p><strong>Téléphone :</strong> <span id="agencyPhone"></span></p>
         <p><strong>Email :</strong> <span id="agencyEmail"></span></p>
         <p><strong>Agence :</strong> <span id="agencyName"></span></p>
@@ -77,8 +79,17 @@
     </div>
   <br>
     <div class="card">
-      <h3>Parler à notre conseiller en ligne</h3><br>
+      <h3>Parler à votre conseiller en ligne</h3><br>
       <button><a href="advisor.html" class="assu"><span>💬</span><small>Conseiller</small></a></button>
+    </div>
+  <br>
+    <div class="card">
+      <h3>Documents</h3>
+      <div class="row">
+        <button id="downloadDailyStatementBtn">📄 Relevé journalier</button>
+        <button id="downloadBankInfoBtn" class="secondary">📄 Informations bancaires</button>
+        <button id="downloadBankContractBtn" class="secondary">📄 Contrat bancaire</button>
+      </div>
     </div>
 
   </div>

@@ -10,8 +10,13 @@
 <body class="auth-page">
   <div class="auth-container">
     <div class="auth-card">
-      <h1>Cryptex Bank</h1>
-      <p class="small">Simulation bancaire réaliste</p>
+      <div class="auth-brand">
+        <img src="img/logo.png" alt="Logo Cryptex Bank"> 
+        <div>
+          <h1>Cryptex Bank</h1>
+          <p>Banque privée</p>
+        </div>
+      </div>
 
       <input id="displayName" type="text" placeholder="Prénom / Nom">
       <div id="businessAccountCard" class="account-type-card">
@@ -41,7 +46,6 @@
 
       <button id="loginBtn">Se connecter</button>
       <button id="registerBtn" class="secondary">Créer un compte</button>
-      <button id="googleBtn" class="secondary">Continuer avec Google</button>
       <button id="resetBtn" class="link-btn">Mot de passe oublié</button>
 
       <p id="statusMsg" class="small"></p>
@@ -67,13 +71,15 @@
     function createDefaultProfile(user) {
       const name = displayNameInput.value.trim() || user.displayName || user.email.split("@")[0];
       const isBusiness = isBusinessAccountInput.checked;
-
+      
       return {
         email: user.email,
         username: name,
         displayName: name,
         createdAt: Date.now(),
         isAdmin: false,
+        isAdvisor: false,
+        advisorId: null,
 
         accounts: {
           courant: 1000,
@@ -112,18 +118,11 @@
         lastLoanPaymentCheck: Date.now(),
 
         isBusiness,
-        advisor: isBusiness ? "Camille Martin — Conseiller entreprise" : "Camille Martin",
-        agency: {
-          advisor: isBusiness ? "Camille Martin — Conseiller entreprise" : "Camille Martin",
-          phone: "05 56 65 15 94",
-          email: "conseiller@cryptex-bank.fr",
-          name: "Cryptex Bank Bordeaux",
-          address: "10 cours de l’Intendance, 33000 Bordeaux",
-          hours: "Lun - Ven : 9h00 - 18h00 et Sam - Dim : 10h00 - 16h00"
-        },
+        advisor: null,
+        agency: null,
 
         lastInterestPayment: Date.now(),
-        lastTaxPayment: Date.now()
+        lastTaxPayment: Date.now(),
       };
     }
 

@@ -28,10 +28,27 @@
       <h3 id="advisorName">Conseiller</h3>
       <p class="small" id="advisorInfo">Chargement...</p>
     </div>
+</br>
+    <div class="card">
+      <h3>Prendre rendez-vous</h3>
+      <p class="small">Choisissez un créneau avec votre conseiller.</p>
 
+      <div class="appointment-grid">
+        <button class="appointment-slot" data-slot="Lundi 10h00">Lundi 10h00</button>
+        <button class="appointment-slot" data-slot="Mardi 14h00">Mardi 14h00</button>
+        <button class="appointment-slot" data-slot="Mercredi 16h30">Mercredi 16h30</button>
+        <button class="appointment-slot" data-slot="Jeudi 11h00">Jeudi 11h00</button>
+        <button class="appointment-slot" data-slot="Vendredi 15h00">Vendredi 15h00</button>
+      </div>
+
+      <textarea id="appointmentReason" placeholder="Motif du rendez-vous..."></textarea>
+
+      <button id="bookAppointmentBtn">Confirmer le rendez-vous</button>
+    </div>
+</br>
     <div class="card">
       <h3>Nouvelle demande</h3>
-
+</br>
       <div class="advisor-actions">
         <button class="advisor-topic active" data-topic="pin">Changer mon PIN</button>
         <button class="advisor-topic" data-topic="overdraft">Augmenter mon découvert</button>
@@ -44,11 +61,13 @@
 
       <button id="sendAdvisorMessageBtn">Envoyer au conseiller</button>
     </div>
-
+</br>
     <div class="card">
       <h3>Messages</h3>
+      </br>
       <div id="advisorMessagesList"></div>
     </div>
+
   </div>
 
   <footer class="cryptex-footer">

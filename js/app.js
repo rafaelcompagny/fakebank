@@ -10,6 +10,26 @@ function escapeHtml(text) {
     .replaceAll("'", "&#039;");
 }
 
+function isAdmin(profile) {
+  return profile?.role === "admin" || profile?.isAdmin === true;
+}
+
+function isAdvisor(profile) {
+  return profile?.role === "advisor" || profile?.isAdvisor === true;
+}
+
+function canAccessAdminPanel(profile) {
+  return isAdmin(profile) || isAdvisor(profile);
+}
+
+function canModifyMoney(profile) {
+  return isAdmin(profile);
+}
+
+function canUseAdvisorActions(profile) {
+  return isAdmin(profile) || isAdvisor(profile);
+}
+
 function addTransaction(profile, label, amount, category = "general") {
   profile.transactions = profile.transactions || [];
   profile.history = profile.history || [];
@@ -72,17 +92,15 @@ function updateCreditScore(profile, amount) {
 }
 
 function getOverdraftLimit(profile) {
-  const type = profile.card?.type || "classic";
+  let total = getBaseOverdraft(profile);
 
-  const limits = {
-    classic: 0,
-    green: 100,
-    gold: 500,
-    black: 1000,
-    premium: 5000
-  };
+  total += profile.customOverdraft || 0;
 
-  return limits[type] || 0;
+  if (profile.temporaryOverdraft && profile.temporaryOverdraft.until > Date.now()) {
+    total += profile.temporaryOverdraft.amount || 0;
+  }
+
+  return total;
 }
 
 function canPayWithOverdraft(profile, amount) {
@@ -108,6 +126,12 @@ function requireActiveCard(profile) {
 async function adminChangeMoney(targetUid, mode) {
   const input = document.querySelector(`.admin-money-input[data-uid="${targetUid}"]`);
   const amount = Number(input?.value || 0);
+  const currentProfile = await getUserProfile(currentUid);
+
+  if (!canModifyMoney(currentProfile)) {
+    alert("Action refusée : seul un administrateur peut modifier l'argent.");
+    return;
+  }
 
   if (!amount || amount <= 0) {
     alert("Montant invalide.");
@@ -349,8 +373,12 @@ function addXp(profile, amount, reason) {
 }
 
 function updateAdminNavVisibility(profile) {
-  const link = document.getElementById("adminNavLink");
-  if (link) link.style.display = profile?.isAdmin ? "flex" : "none";
+  const adminNavLink = document.getElementById("adminNavLink");
+  if (!adminNavLink) return;
+
+  adminNavLink.style.display = canAccessAdminPanel(profile)
+    ? "flex"
+    : "none";
 }
 
 function bindLogout() {
@@ -467,6 +495,7 @@ async function renderHome(uid) {
 async function transferSaving(uid, direction) {
   const profile = await getUserProfile(uid);
   if (!profile) return;
+  if (!requireActiveCard(profile)) return;
 
   const amount = Number(document.getElementById("savingAmount")?.value || 0);
   if (!amount || amount <= 0) return alert("Montant invalide.");
@@ -627,6 +656,8 @@ async function renderPayments(uid) {
 async function sendTransfer(uid) {
   const sender = await getUserProfile(uid);
   if (!sender) return;
+
+  if (!requireActiveCard(sender)) return;
 
   const receiverIban = document.getElementById("receiverIban").value.trim();
   const amount = Number(document.getElementById("transferAmount").value);
@@ -1102,15 +1133,60 @@ async function initCards(user) {
   }
 }
 
+function getBaseOverdraft(profile) {
+
+  const type = profile.card?.type || "classic";
+
+  const limits = {
+    classic: 0,
+    green: 100,
+    gold: 500,
+    black: 1000,
+    premium: 5000
+  };
+
+  return limits[type] || 0;
+}
+
 
 /////////////////////////////////////////////////////////////////////////
                              /// ADMIN ///
 /////////////////////////////////////////////////////////////////////////
 
+function getScoreColor(score){
+
+  if(score >= 800)
+    return "#43e97b";
+
+  if(score >= 650)
+    return "#38bdf8";
+
+  if(score >= 500)
+    return "#f59e0b";
+
+  return "#ef4444";
+
+}
+
+function getScoreLabel(score){
+
+  if(score >= 800)
+    return "Excellent";
+
+  if(score >= 650)
+    return "Bon";
+
+  if(score >= 500)
+    return "Correct";
+
+  return "Risque élevé";
+
+}
+
 async function renderAdmin(currentUid) {
   const currentProfile = await getUserProfile(currentUid);
 
-  if (!currentProfile?.isAdmin) {
+  if (!canAccessAdminPanel(currentProfile)) {
     window.location.href = "home.html";
     return;
   }
@@ -1121,8 +1197,13 @@ async function renderAdmin(currentUid) {
   const adminUsersList = document.getElementById("adminUsersList");
   if (!adminUsersList) return;
 
-  const users = await getAllUsers();
+  let users = await getAllUsers();
   renderAdminAdvisorMessages(users, currentUid);
+  if (isAdvisor(currentProfile) && !isAdmin(currentProfile)) {
+    users = users.filter(user =>
+      user.agency?.advisorId === currentProfile.advisorId
+    );
+  }
 
   adminUsersList.innerHTML = users.map(user => {
     const history = user.history || [];
@@ -1146,14 +1227,46 @@ async function renderAdmin(currentUid) {
           <p><strong>Carte :</strong> ${escapeHtml(cardType)}</p>
           <p><strong>Compte courant :</strong> ${formatMoney(user.accounts?.courant || 0)}</p>
           <p><strong>Épargne :</strong> ${formatMoney(user.accounts?.epargne || 0)}</p>
-          <p><strong>XP :</strong> ${Number(user.xp || 0).toLocaleString("fr-FR")}</p>
+          <p><strong>XP : </strong> ${Number(user.xp || 0).toLocaleString("fr-FR")}</p>
+          <p><strong>Conseiller :</strong> ${escapeHtml(user.agency?.advisor || user.advisor || "Non assigné")}</p>
+          <p>
+            <strong>Score bancaire :</strong>
+
+            <span
+              style="
+                color:${getScoreColor(
+                  user.creditScore || 500
+                )};
+                font-weight:900;
+              ">
+              ${user.creditScore || 500}
+            </span>
+
+            (${getScoreLabel(
+              user.creditScore || 500
+            )})
+          </p>
           <p><strong>Admin :</strong> ${user.isAdmin ? "Oui" : "Non"}</p>
+          <p><strong>Découvert carte : </strong>${formatMoney(getBaseOverdraft(user))}</p>
+          <p><strong>Découvert temporaire :</strong>
+            ${
+              user.temporaryOverdraft?.until > Date.now()
+                ? formatMoney(user.temporaryOverdraft.amount)
+                : "Aucun"
+            }
+          </p>
         </div>
 
+        ${canModifyMoney(currentProfile) ? `
+          <div class="row">
+            <input class="admin-money-input" data-uid="${user.uid}" type="number" placeholder="Montant">
+            <button class="admin-add-money-btn" data-uid="${user.uid}">Ajouter</button>
+            <button class="admin-remove-money-btn secondary" data-uid="${user.uid}">Enlever</button>
+          </div>
+        ` : `
+          <p class="small">Accès conseiller : modification d'argent désactivée.</p>
+        `}
         <div class="row">
-          <input class="admin-money-input" data-uid="${user.uid}" type="number" placeholder="Montant">
-          <button class="admin-add-money-btn" data-uid="${user.uid}">Ajouter</button>
-          <button class="admin-remove-money-btn secondary" data-uid="${user.uid}">Enlever</button>
           <button class="admin-history-btn secondary" data-uid="${user.uid}">Historique</button>
         </div>
 
@@ -1183,65 +1296,400 @@ async function renderAdmin(currentUid) {
 
   document.querySelectorAll(".admin-add-money-btn").forEach(btn => {
     btn.onclick = async () => {
-      await adminChangeMoney(btn.dataset.uid, "add");
+      await adminChangeMoney(currentUid, btn.dataset.uid, "add");
       await renderAdmin(currentUid);
     };
   });
 
   document.querySelectorAll(".admin-remove-money-btn").forEach(btn => {
     btn.onclick = async () => {
-      await adminChangeMoney(btn.dataset.uid, "remove");
+      await adminChangeMoney(currentUid, btn.dataset.uid, "remove");
       await renderAdmin(currentUid);
     };
   });
 }
 
-function renderAdminAdvisorMessages(users, currentUid) {
+async function adminPermanentOverdraft(targetUid, amount) {
+  const profile = await getUserProfile(targetUid);
+  if (!profile) return;
+
+  if (amount < 0) {
+    alert("Montant invalide.");
+    return;
+  }
+
+  profile.customOverdraft = amount;
+  profile.notifications = profile.notifications || [];
+
+  addTransaction(
+    profile,
+    `Découvert permanent défini : ${formatMoney(amount)}`,
+    0,
+    "admin_bank"
+  );
+
+  addNotification(
+    profile,
+    "Découvert permanent modifié",
+    `Votre découvert permanent est maintenant de ${formatMoney(amount)}.`,
+    "success"
+  );
+
+  await updateUserProfile(targetUid, {
+    customOverdraft: profile.customOverdraft,
+    history: profile.history,
+    transactions: profile.transactions,
+    notifications: profile.notifications
+  });
+}
+
+async function removeTemporaryOverdraft(
+  targetUid
+){
+
+  const profile =
+    await getUserProfile(targetUid);
+
+  if(!profile) return;
+
+  profile.notifications =
+    profile.notifications || [];
+
+  profile.temporaryOverdraft = null;
+
+  addTransaction(
+    profile,
+    "Découvert temporaire supprimé",
+    0,
+    "admin_bank"
+  );
+
+  addNotification(
+    profile,
+    "Découvert retiré",
+    "Votre découvert temporaire a été retiré par votre conseiller.",
+    "warning"
+  );
+
+  await updateUserProfile(
+    targetUid,
+    {
+      temporaryOverdraft:
+        profile.temporaryOverdraft,
+      history:
+        profile.history,
+      transactions:
+        profile.transactions,
+      notifications:
+        profile.notifications
+    }
+  );
+
+}
+
+async function acceptPendingLoan(targetUid, loanId) {
+  const profile = await getUserProfile(targetUid);
+  if (!profile) return;
+
+  profile.pendingLoans = profile.pendingLoans || [];
+  profile.loans = profile.loans || [];
+  profile.accounts = profile.accounts || { courant: 0, epargne: 0 };
+  profile.notifications = profile.notifications || [];
+
+  const pendingLoan = profile.pendingLoans.find(l => l.id === loanId);
+  if (!pendingLoan) return alert("Demande introuvable.");
+
+  const loan = {
+    id: crypto.randomUUID(),
+    type: pendingLoan.type,
+    amount: pendingLoan.amount,
+    remainingAmount: pendingLoan.amount,
+    durationMonths: pendingLoan.durationMonths,
+    monthlyPayment: pendingLoan.monthlyPayment,
+    rate: pendingLoan.rate,
+    insurance: pendingLoan.insurance,
+    createdAt: Date.now(),
+    lastPayment: Date.now(),
+    acceptedByAdvisor: true
+  };
+
+  profile.loans.push(loan);
+  profile.accounts.courant += loan.amount;
+
+  pendingLoan.status = "accepted";
+
+  profile.advisorMessages = (profile.advisorMessages || []).map(msg => {
+    if (msg.pendingLoanId === loanId) {
+      return { ...msg, status: "answered" };
+    }
+    return msg;
+  });
+
+  addTransaction(profile, `Prêt accepté : ${LOAN_TYPES[loan.type]?.name}`, loan.amount, "loan");
+  addNotification(profile, "Prêt accepté", `${LOAN_TYPES[loan.type]?.name} de ${pdfMoney(loan.amount)} accepté.`, "success");
+  updateCreditScore(profile, 5);
+
+  await updateUserProfile(targetUid, {
+    loans: profile.loans,
+    pendingLoans: profile.pendingLoans,
+    accounts: profile.accounts,
+    advisorMessages: profile.advisorMessages,
+    history: profile.history,
+    transactions: profile.transactions,
+    notifications: profile.notifications,
+    creditScore: profile.creditScore
+  });
+
+  generateLoanContractPDF(profile, loan);
+}
+
+async function rejectPendingLoan(targetUid, loanId) {
+  const profile = await getUserProfile(targetUid);
+  if (!profile) return;
+
+  profile.pendingLoans = profile.pendingLoans || [];
+  profile.notifications = profile.notifications || [];
+
+  const pendingLoan = profile.pendingLoans.find(l => l.id === loanId);
+  if (!pendingLoan) return alert("Demande introuvable.");
+
+  pendingLoan.status = "rejected";
+
+  profile.advisorMessages = (profile.advisorMessages || []).map(msg => {
+    if (msg.pendingLoanId === loanId) {
+      return { ...msg, status: "closed" };
+    }
+    return msg;
+  });
+
+  addTransaction(profile, `Prêt refusé : ${LOAN_TYPES[pendingLoan.type]?.name}`, 0, "loan_refused");
+
+  addNotification(
+    profile,
+    "Prêt refusé",
+    `Votre demande de ${LOAN_TYPES[pendingLoan.type]?.name} a été refusée.`,
+    "error"
+  );
+
+  updateCreditScore(profile, -3);
+
+  await updateUserProfile(targetUid, {
+    pendingLoans: profile.pendingLoans,
+    advisorMessages: profile.advisorMessages,
+    history: profile.history,
+    transactions: profile.transactions,
+    notifications: profile.notifications,
+    creditScore: profile.creditScore
+  });
+}
+
+async function openAdvisorConversation(targetUid, currentUid) {
+  const profile = await getUserProfile(targetUid);
+  if (!profile) return;
+
   const box = document.getElementById("adminAdvisorMessages");
   if (!box) return;
 
-  const messages = [];
+  profile.advisorMessages = profile.advisorMessages || [];
 
-  users.forEach(user => {
-    (user.advisorMessages || []).forEach((msg, index) => {
-      if (msg.from === "user") {
-        messages.push({
-          user,
-          msg,
-          index
-        });
-      }
-    });
+  const messages = profile.advisorMessages
+    .filter(msg => !msg.archived)
+    .sort((a, b) => b.createdAt - a.createdAt);
+
+  box.innerHTML = `
+    <button id="backToConversationsBtn" class="secondary">← Retour aux conversations</button>
+
+    <div class="admin-user-card">
+      <h3>${escapeHtml(profile.displayName || profile.username || "Utilisateur")}</h3>
+      <p class="small">${escapeHtml(profile.email || "")}</p>
+      <div class="advisor-admin-panel">
+        <h4>Actions conseiller</h4>
+
+        <div class="advisor-admin-grid">
+          <button class="admin-action-tile" data-action="reset_pin" data-uid="${targetUid}">
+            <span>🔐</span>
+            <strong>Réinitialiser PIN</strong>
+            <small>Le client pourra créer un nouveau code.</small>
+          </button>
+
+          <button class="admin-action-tile" data-action="toggle_card" data-uid="${targetUid}">
+            <span>💳</span>
+            <strong>Bloquer / Débloquer carte</strong>
+            <small>Sécurité en cas de perte ou vol.</small>
+          </button>
+
+          <div class="admin-action-tile form-tile">
+            <span>💸</span>
+            <strong>Découvert temporaire</strong>
+            <small>Montant et durée personnalisés.</small>
+
+            <input id="adminOverdraftAmount" type="number" value="500" placeholder="Montant">
+            <input id="adminOverdraftHours" type="number" value="24" placeholder="Durée en heures">
+
+            <button id="grantOverdraftBtn">Accorder</button>
+            <button
+              id="removeOverdraftBtn"
+              class="secondary">
+              ❌ Supprimer
+            </button>
+          </div>
+
+          <div class="admin-action-tile form-tile">
+            <span>♾️</span>
+            <strong>Découvert permanent</strong>
+            <small>Modifier le découvert du client.</small>
+
+            <input id="adminPermanentOverdraftAmount" type="number" value="${profile.customOverdraft || 0}" placeholder="Montant">
+
+            <button id="grantPermanentOverdraftBtn">Modifier</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    ${
+      messages.length
+        ? messages.map(msg => `
+          <div class="advisor-message ${msg.from}">
+            ${msg.from === "user" ? getMessageStatusBadge(msg.status || "open") : ""}
+            <strong>${msg.from === "user" ? "Client" : "Conseiller"}</strong>
+            <p>${escapeHtml(msg.text)}</p>
+            <p class="small">${formatNotificationDate(msg.createdAt)}</p>
+
+            ${
+              msg.from === "user" && msg.status !== "closed"
+                ? `
+                  <textarea
+                    class="admin-advisor-reply-text"
+                    data-id="${msg.id}"
+                    placeholder="Répondre à ce message précis..."
+                  ></textarea>
+
+                  <div class="row">
+                    <button class="reply-specific-message-btn" data-uid="${targetUid}" data-id="${msg.id}">
+                      Répondre
+                    </button>
+
+                    <button class="archive-message-btn secondary" data-uid="${targetUid}" data-id="${msg.id}">
+                      🔒 Fermer le dossier
+                    </button>
+                    ${
+                      msg.topic === "loan" && msg.pendingLoanId && msg.status !== "closed"
+                        ? `
+                          <div class="loan-admin-actions">
+                            <button class="accept-pending-loan-btn" data-uid="${targetUid}" data-loan-id="${msg.pendingLoanId}">
+                              ✅ Accepter le prêt
+                            </button>
+
+                            <button class="reject-pending-loan-btn secondary" data-uid="${targetUid}" data-loan-id="${msg.pendingLoanId}">
+                              ❌ Refuser le prêt
+                            </button>
+                          </div>
+                        `
+                        : ""
+                    }
+                    </div>
+                  `
+                  : ""
+              }
+          </div>
+        `).join("")
+        : `<div class="list-item">Aucun message.</div>`
+    }
+  `;
+
+  document.querySelectorAll(".accept-pending-loan-btn").forEach(btn => {
+    btn.onclick = async () => {
+      await acceptPendingLoan(btn.dataset.uid, btn.dataset.loanId);
+      await openAdvisorConversation(targetUid, currentUid);
+    };
   });
 
-  messages.sort((a, b) => b.msg.createdAt - a.msg.createdAt);
-
-  box.innerHTML = messages.length
-    ? messages.map(item => `
-      <div class="admin-user-card">
-        <h3>${escapeHtml(item.user.displayName || item.user.username || "Utilisateur")}</h3>
-        <p class="small">${escapeHtml(item.user.email || "")}</p>
-        <p><strong>Type :</strong> ${escapeHtml(item.msg.topic || "Autre")}</p><br>
-        <p>${escapeHtml(item.msg.text)}</p> <br>
-        <p class="small">${formatNotificationDate(item.msg.createdAt)}</p><br>
-
-        <textarea
-          class="admin-advisor-reply"
-          data-uid="${item.user.uid}"
-          placeholder="Répondre au client..."
-        ></textarea>
-
-        <button class="send-admin-advisor-reply-btn" data-uid="${item.user.uid}">
-          Envoyer la réponse
-        </button>
-      </div>
-    `).join("")
-    : `<div class="list-item">Aucun message conseiller.</div>`;
-
-  document.querySelectorAll(".send-admin-advisor-reply-btn").forEach(btn => {
+  document.querySelectorAll(".reject-pending-loan-btn").forEach(btn => {
     btn.onclick = async () => {
-      const uid = btn.dataset.uid;
-      const textarea = document.querySelector(`.admin-advisor-reply[data-uid="${uid}"]`);
+      await rejectPendingLoan(btn.dataset.uid, btn.dataset.loanId);
+      await openAdvisorConversation(targetUid, currentUid);
+    };
+  });
+
+  const grantBtn =
+    document.getElementById("grantOverdraftBtn");
+
+  const removeBtn =
+    document.getElementById("removeOverdraftBtn");
+
+    if(removeBtn){
+
+      removeBtn.onclick = async () => {
+
+        await removeTemporaryOverdraft(
+          targetUid
+        );
+
+        await openAdvisorConversation(
+          targetUid,
+          currentUid
+        );
+
+      };
+
+    }
+
+  if(grantBtn){
+
+    grantBtn.onclick = async () => {
+
+      const amount =
+        Number(
+          document.getElementById(
+            "adminOverdraftAmount"
+          ).value
+        );
+
+      const hours =
+        Number(
+          document.getElementById(
+            "adminOverdraftHours"
+          ).value
+        );
+
+      await adminTemporaryOverdraft(
+        targetUid,
+        amount,
+        hours
+      );
+
+      await openAdvisorConversation(
+        targetUid,
+        currentUid
+      );
+
+    };
+
+  }
+
+  const permanentBtn = document.getElementById("grantPermanentOverdraftBtn");
+
+  if (permanentBtn) {
+    permanentBtn.onclick = async () => {
+      const amount = Number(document.getElementById("adminPermanentOverdraftAmount").value);
+
+      await adminPermanentOverdraft(targetUid, amount);
+
+      alert(`Découvert permanent défini à ${amount}€`);
+
+      await openAdvisorConversation(targetUid, currentUid);
+    };
+  }
+
+  document.getElementById("backToConversationsBtn").onclick = async () => {
+    const users = await getAllUsers();
+    renderAdminAdvisorMessages(users, currentUid);
+  };
+
+  document.querySelectorAll(".reply-specific-message-btn").forEach(btn => {
+    btn.onclick = async () => {
+      const textarea = document.querySelector(`.admin-advisor-reply-text[data-id="${btn.dataset.id}"]`);
       const text = textarea.value.trim();
 
       if (!text) {
@@ -1249,8 +1697,252 @@ function renderAdminAdvisorMessages(users, currentUid) {
         return;
       }
 
-      await sendAdminAdvisorReply(uid, text);
-      await renderAdmin(currentUid);
+      await sendAdminAdvisorReplyToMessage(btn.dataset.uid, btn.dataset.id, text);
+      await openAdvisorConversation(targetUid, currentUid);
+    };
+  });
+
+  document.querySelectorAll(".archive-message-btn").forEach(btn => {
+    btn.onclick = async () => {
+      await closeAdvisorMessage(btn.dataset.uid, btn.dataset.id);
+      await openAdvisorConversation(targetUid, currentUid);
+    };
+  });
+
+  document.querySelectorAll(".admin-action-tile[data-action]").forEach(btn => {
+    btn.onclick = async () => {
+      const action = btn.dataset.action;
+      const uid = btn.dataset.uid;
+
+      await runAdminAdvisorAction(uid, action);
+      await openAdvisorConversation(targetUid, currentUid);
+    };
+  });
+}
+
+async function runAdminAdvisorAction(targetUid, action) {
+  if (action === "reset_pin") {
+    await adminResetPin(targetUid);
+  }
+
+  if (action === "toggle_card") {
+    await adminToggleCard(targetUid);
+  }
+
+  if (action === "overdraft_24h") {
+    await adminTemporaryOverdraft(targetUid, 500, 24);
+  }
+}
+
+async function adminResetPin(targetUid) {
+  const profile = await getUserProfile(targetUid);
+  if (!profile) return;
+
+  profile.card = profile.card || {};
+  profile.notifications = profile.notifications || [];
+
+  profile.card.pin = null;
+  profile.card.revealed = false;
+  profile.card.pinAttempts = 0;
+
+  addTransaction(profile, "Admin : réinitialisation du PIN", 0, "admin_security");
+
+  addNotification(
+    profile,
+    "PIN réinitialisé",
+    "Votre conseiller a réinitialisé votre PIN. Vous pouvez en créer un nouveau.",
+    "info"
+  );
+
+  await updateUserProfile(targetUid, {
+    card: profile.card,
+    history: profile.history,
+    transactions: profile.transactions,
+    notifications: profile.notifications
+  });
+
+  alert("PIN réinitialisé.");
+}
+
+
+async function adminToggleCard(targetUid) {
+  const profile = await getUserProfile(targetUid);
+  if (!profile) return;
+
+  profile.card = profile.card || {};
+  profile.notifications = profile.notifications || [];
+
+  const blocked = !(profile.cardBlocked || profile.card.blocked);
+
+  profile.cardBlocked = blocked;
+  profile.card.blocked = blocked;
+
+  addTransaction(
+    profile,
+    blocked ? "Admin : carte bloquée" : "Admin : carte débloquée",
+    0,
+    "admin_security"
+  );
+
+  addNotification(
+    profile,
+    blocked ? "Carte bloquée" : "Carte débloquée",
+    blocked
+      ? "Votre conseiller a bloqué votre carte bancaire."
+      : "Votre conseiller a débloqué votre carte bancaire.",
+    blocked ? "warning" : "success"
+  );
+
+  await updateUserProfile(targetUid, {
+    card: profile.card,
+    cardBlocked: profile.cardBlocked,
+    history: profile.history,
+    transactions: profile.transactions,
+    notifications: profile.notifications
+  });
+
+  alert(blocked ? "Carte bloquée." : "Carte débloquée.");
+}
+
+
+async function adminTemporaryOverdraft(targetUid, amount, hours) {
+  const profile = await getUserProfile(targetUid);
+  if (!profile) return;
+
+  if (amount <= 0) {
+    alert("Montant invalide.");
+    return;
+  }
+
+  if (hours <= 0) {
+    alert("Durée invalide.");
+    return;
+  }
+
+  profile.notifications = profile.notifications || [];
+
+  profile.temporaryOverdraft = {
+    amount,
+    until: Date.now() + hours * 60 * 60 * 1000
+  };
+
+  addTransaction(
+    profile,
+    `Découvert accordé : +${formatMoney(amount)} pendant ${hours}h`,
+    0,
+    "admin_bank"
+  );
+
+  addNotification(
+    profile,
+    "Découvert accordé",
+    `Votre conseiller vous a accordé ${formatMoney(amount)} pendant ${hours} heures.`,
+    "success"
+  );
+
+  await updateUserProfile(targetUid, {
+    temporaryOverdraft: profile.temporaryOverdraft,
+    history: profile.history,
+    transactions: profile.transactions,
+    notifications: profile.notifications
+  });
+}
+
+async function sendAdminAdvisorReplyToMessage(targetUid, messageId, text) {
+  const profile = await getUserProfile(targetUid);
+  if (!profile) return;
+
+  profile.advisorMessages = profile.advisorMessages || [];
+  profile.notifications = profile.notifications || [];
+
+  const targetMessage = profile.advisorMessages.find(m => m.id === messageId);
+
+  if (!targetMessage) {
+    alert("Message introuvable.");
+    return;
+  }
+
+  targetMessage.status = "answered";
+
+  profile.advisorMessages.unshift({
+    id: crypto.randomUUID(),
+    from: "bank",
+    topic: targetMessage.topic || "admin_reply",
+    replyTo: messageId,
+    text,
+    status: "answer",
+    archived: false,
+    createdAt: Date.now()
+  });
+
+  profile.advisorMessages = profile.advisorMessages.slice(0, 50);
+
+  addNotification(
+    profile,
+    "Réponse conseiller",
+    "Votre conseiller a répondu à votre message.",
+    "info"
+  );
+
+  await updateUserProfile(targetUid, {
+    advisorMessages: profile.advisorMessages,
+    notifications: profile.notifications
+  });
+}
+
+async function closeAdvisorMessage(uid, messageId) {
+  const profile = await getUserProfile(uid);
+  if (!profile) return;
+
+  profile.advisorMessages = profile.advisorMessages || [];
+
+  const msg = profile.advisorMessages.find(m => String(m.id) === String(messageId));
+
+  if (!msg) {
+    alert("Message introuvable pour archivage.");
+    return;
+  }
+
+  msg.status = "closed";
+
+  await updateUserProfile(uid, {
+    advisorMessages: profile.advisorMessages
+  });
+}
+
+function renderAdminAdvisorMessages(users, currentUid) {
+  const box = document.getElementById("adminAdvisorMessages");
+  if (!box) return;
+
+  const conversations = users.filter(user =>
+    (user.advisorMessages || []).some(msg =>
+      msg.from === "user" && !msg.archived
+    )
+  );
+
+  box.innerHTML = conversations.length
+    ? conversations.map(user => {
+        const messages = (user.advisorMessages || []).filter(msg => !msg.archived);
+        const openCount = messages.filter(msg => msg.from === "user" && msg.status === "open").length;
+
+        return `
+          <div class="admin-user-card">
+            <h3>${escapeHtml(user.displayName || user.firstName || user.username || "Utilisateur")}</h3>
+            <p class="small">${escapeHtml(user.email || "")}</p>
+            <p class="small">${messages.length} message(s)</p>
+            <p>${openCount > 0 ? `🟠 ${openCount} en attente` : "🟢 Tout traité"}</p>
+
+            <button class="open-conversation-btn" data-uid="${user.uid}">
+              Ouvrir la conversation
+            </button>
+          </div>
+        `;
+      }).join("")
+    : `<div class="list-item">Aucune conversation conseiller.</div>`;
+
+  document.querySelectorAll(".open-conversation-btn").forEach(btn => {
+    btn.onclick = async () => {
+      await openAdvisorConversation(btn.dataset.uid, currentUid);
     };
   });
 }
@@ -1263,11 +1955,24 @@ async function sendAdminAdvisorReply(targetUid, text) {
   profile.notifications = profile.notifications || [];
 
   profile.advisorMessages.unshift({
+    id: crypto.randomUUID(),
     from: "bank",
     topic: "admin_reply",
     text,
+    status: "open",
+    archived: false,
     createdAt: Date.now()
   });
+
+  const lastUserMessage = profile.advisorMessages.find(
+    msg => msg.from === "user" &&
+          msg.status === "open" &&
+          !msg.archived
+  );
+
+  if (lastUserMessage) {
+    lastUserMessage.status = "answered";
+  }
 
   profile.advisorMessages = profile.advisorMessages.slice(0, 30);
 
@@ -1288,6 +1993,8 @@ async function sendAdminAdvisorReply(targetUid, text) {
                              /// PROFILE ///
 /////////////////////////////////////////////////////////////////////////
 
+let advisorIndex = 0;
+let businessAdvisorIndex = 0;
 
 function formatDate(timestamp) {
   if (!timestamp) return "Date inconnue";
@@ -1300,7 +2007,7 @@ function formatDate(timestamp) {
 }
 
 async function renderProfile(uid) {
-  const profile = await getUserProfile(uid);
+  const profile = await ensureAdvisorAssigned(uid);
   if (!profile) return;
 
   updateAdminNavVisibility(profile);
@@ -1358,6 +2065,8 @@ async function renderProfile(uid) {
     hours: "Lun - Ven : 9h00 - 18h00"
   };
 
+  document.getElementById("agencyAdvisorRole").innerText =
+    agency.role || "Conseiller bancaire";
   document.getElementById("agencyAdvisor").innerText = agency.advisor;
   document.getElementById("agencyPhone").innerText = agency.phone;
   document.getElementById("agencyEmail").innerText = agency.email;
@@ -1366,12 +2075,517 @@ async function renderProfile(uid) {
   document.getElementById("agencyHours").innerText = agency.hours;
 }
 
+const ADVISORS = [
+  {
+    id: "camille_martin",
+    name: "Camille Martin",
+    role: "Conseillère particuliers",
+    phone: "05 56 00 00 01",
+    email: "camille.martin@cryptex-bank.fr"
+  },
+  {
+    id: "thomas_bernard",
+    name: "Thomas Bernard",
+    role: "Conseiller crédits",
+    phone: "05 56 00 00 02",
+    email: "thomas.bernard@cryptex-bank.fr"
+  },
+  {
+    id: "lea_durand",
+    name: "Léa Durand",
+    role: "Conseillère patrimoine",
+    phone: "05 56 00 00 03",
+    email: "lea.durand@cryptex-bank.fr"
+  },
+  {
+    id: "rafael_particulier",
+    name: "Rafaël Granero",
+    role: "Conseillère Globale",
+    phone: "05 56 00 00 00",
+    email: "rafael.granero@cryptex-bank.fr"
+  },
+  {
+    id: "rafael_business",
+    name: "Rafaël Granero",
+    role: "Conseillère Globale",
+    phone: "05 56 00 00 00",
+    email: "rafael.granero@cryptex-bank.fr",
+    businessOnly: true
+  },
+  {
+    id: "nicolas_moreau",
+    name: "Nicolas Moreau",
+    role: "Conseiller entreprises",
+    phone: "05 56 00 00 04",
+    email: "nicolas.moreau@cryptex-bank.fr",
+    businessOnly: true
+  },
+  {
+    id: "sophie_leroy",
+    name: "Sophie Leroy",
+    role: "Conseillère entreprises",
+    phone: "05 56 00 00 05",
+    email: "sophie.leroy@cryptex-bank.fr",
+    businessOnly: true
+  }
+];
+
+function getNextAdvisor(isBusiness = false) {
+
+  if (isBusiness) {
+
+    const businessAdvisors =
+      ADVISORS.filter(
+        advisor => advisor.businessOnly
+      );
+
+    const advisor =
+      businessAdvisors[
+        businessAdvisorIndex %
+        businessAdvisors.length
+      ];
+
+    businessAdvisorIndex++;
+
+    return advisor;
+  }
+
+  const standardAdvisors =
+    ADVISORS.filter(
+      advisor => !advisor.businessOnly
+    );
+
+  const advisor =
+    standardAdvisors[
+      advisorIndex %
+      standardAdvisors.length
+    ];
+
+  advisorIndex++;
+
+  return advisor;
+}
+
 async function initProfile(user) {
   bindLogout();
   bindNotifications(user.uid);
+
   await renderProfile(user.uid);
+
   const profile = await getUserProfile(user.uid);
   renderNotificationDot(profile);
+
+  const bankInfoBtn = document.getElementById("downloadBankInfoBtn");
+  if (bankInfoBtn) {
+    bankInfoBtn.onclick = async () => {
+      const profile = await getUserProfile(user.uid);
+      generateBankInfoPDF(profile);
+    };
+  }
+
+  const dailyStatementBtn = document.getElementById("downloadDailyStatementBtn");
+  if (dailyStatementBtn) {
+    dailyStatementBtn.onclick = async () => {
+      const profile = await getUserProfile(user.uid);
+      generateDailyStatementPDF(profile);
+    };
+  }
+
+  const bankContractBtn = document.getElementById("downloadBankContractBtn");
+  if (bankContractBtn) {
+    bankContractBtn.onclick = async () => {
+      const profile = await getUserProfile(user.uid);
+      generateBankContractPDF(profile);
+    };
+  }
+
+  const insuranceContractBtn = document.getElementById("downloadInsuranceContractBtn");
+  if (insuranceContractBtn) {
+    insuranceContractBtn.onclick = async () => {
+      const profile = await getUserProfile(user.uid);
+
+      const activeInsuranceId = Object.keys(profile.insurances || {})
+        .find(id => profile.insurances[id]?.active === true);
+
+      if (!activeInsuranceId) {
+        alert("Tu n'as aucune assurance active.");
+        return;
+      }
+
+      generateInsuranceContractPDF(profile, activeInsuranceId);
+    };
+  }
+}
+
+function getLeastUsedAdvisor(isBusiness, users) {
+  const availableAdvisors = ADVISORS.filter(advisor =>
+    isBusiness ? advisor.businessOnly : !advisor.businessOnly
+  );
+
+  const counts = availableAdvisors.map(advisor => {
+    const count = users.filter(user =>
+      user.agency?.advisorId === advisor.id
+    ).length;
+
+    return {
+      advisor,
+      count
+    };
+  });
+
+  counts.sort((a, b) => a.count - b.count);
+
+  return counts[0].advisor;
+}
+
+async function ensureAdvisorAssigned(uid) {
+  const profile = await getUserProfile(uid);
+  if (!profile) return null;
+
+  if (profile.agency?.advisorId) return profile;
+
+  const allUsers = await getAllUsers();
+  const advisor = getLeastUsedAdvisor(profile.isBusiness, allUsers);
+
+  profile.advisor = advisor.name;
+  profile.agency = {
+    advisor: advisor.name,
+    advisorId: advisor.id,
+    role: advisor.role,
+    phone: advisor.phone,
+    email: advisor.email,
+    name: "Cryptex Bank Bordeaux",
+    address: "10 cours de l’Intendance, 33000 Bordeaux",
+    hours: "Lun - Ven : 9h00 - 18h00"
+  };
+
+  await updateUserProfile(uid, {
+    advisor: profile.advisor,
+    agency: profile.agency
+  });
+
+  return profile;
+}
+
+
+/////////////// PDF //////////////
+
+function cleanPdfAmount(value) {
+  let amount = value;
+
+  if (typeof amount === "string") {
+    amount = amount
+      .replace(/\s/g, "")
+      .replace("€", "")
+      .replace(",", ".")
+      .replace(/[^\d.-]/g, "");
+
+    amount = Number(amount);
+  }
+
+  if (isNaN(amount)) amount = 0;
+
+  return pdfMoney(amount);
+}
+
+async function getLogoBase64() {
+  const response = await fetch("img/logo.png");
+
+  const blob = await response.blob();
+
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      resolve(reader.result);
+    };
+
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function pdfHeader(doc, title) {
+  const logoBase64 = await getLogoBase64();
+
+  doc.setFillColor(7, 17, 31);
+  doc.rect(0, 0, 210, 34, "F");
+
+  doc.addImage(logoBase64, "PNG", 12, 7, 11, 11);
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(20);
+  doc.setFont("helvetica", "bold");
+  doc.text("CRYPTEX BANK", 28, 14);
+
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.text("Banque privée virtuelle", 28, 20);
+
+  doc.setTextColor(30, 41, 59);
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.text(title, 15, 48);
+
+  doc.setDrawColor(56, 189, 248);
+  doc.line(15, 53, 195, 53);
+}
+
+function pdfFooter(doc) {
+  doc.setFontSize(8);
+  doc.setTextColor(120, 120, 120);
+  doc.setFontSize(8);
+  doc.text(
+    "Cryptex Bank • Bordeaux • support@cryptex-bank.fr",
+    15,
+    285
+  );
+
+  doc.text(
+    `Document généré le ${new Date().toLocaleDateString("fr-FR")}`,
+    140,
+    285
+  );
+}
+
+function pdfInfoLine(doc, label, value, x, y) {
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(30, 41, 59);
+  doc.text(label, x, y);
+
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(70, 70, 70);
+
+  // largeur réelle du texte du label
+  const labelWidth = doc.getTextWidth(label);
+
+  // toujours 10mm après le label
+  doc.text(
+    String(value || "Non renseigné"),
+    x + labelWidth + 10,
+    y
+  );
+}
+
+function pdfMoney(value) {
+  let amount = Number(value);
+
+  if (typeof value === "string") {
+    amount = Number(
+      value
+        .replace(/\s/g, "")
+        .replace("€", "")
+        .replace(",", ".")
+        .replace(/[^\d.-]/g, "")
+    );
+  }
+
+  if (isNaN(amount)) amount = 0;
+
+  const sign = amount < 0 ? "-" : "";
+  const abs = Math.abs(amount);
+
+  return `${sign}${abs.toFixed(2).replace(".", ",")} EUR`;
+}
+
+
+async function generateBankInfoPDF(profile) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const agency = profile.agency || {};
+  const cardType = profile.card?.type || "classic";
+  const card = BANK_CARDS[cardType] || BANK_CARDS.classic;
+
+  await pdfHeader(doc, "Informations bancaires");
+
+  pdfInfoLine(doc, "Nom :", profile.displayName || profile.username, 15, 65);
+  pdfInfoLine(doc, "Email :", profile.email, 15, 75);
+  pdfInfoLine(doc, "Client depuis :", formatDate(profile.createdAt), 15, 85);
+  pdfInfoLine(doc, "IBAN :", profile.iban, 15, 95);
+
+  pdfInfoLine(doc, "Carte :", card.name, 15, 115);
+  pdfInfoLine(doc, "Découvert autorisé :", pdfMoney(getOverdraftLimit(profile)), 15, 125);
+  pdfInfoLine(doc, "Score bancaire :", `${profile.creditScore || 500} / 1000`, 15, 135);
+
+  pdfInfoLine(doc, "Conseiller :", agency.advisor || profile.advisor, 15, 155);
+  pdfInfoLine(doc, "Rôle :", agency.role || "Conseiller bancaire", 15, 165);
+  pdfInfoLine(doc, "Agence :", agency.name || "Cryptex Bank Bordeaux", 15, 175);
+  pdfInfoLine(doc, "Téléphone :", agency.phone || "05 56 00 00 00", 15, 185);
+  pdfInfoLine(doc, "Email agence :", agency.email || "conseiller@cryptex-bank.fr", 15, 195);
+
+  pdfFooter(doc);
+  doc.save("informations-bancaires-cryptex.pdf");
+}
+
+
+async function generateDailyStatementPDF(profile) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const today = new Date().toLocaleDateString("fr-FR");
+  const todayKey = new Date().toISOString().slice(0, 10);
+
+  const transactions = (profile.transactions || []).filter(tx => {
+    const txDate = new Date(tx.createdAt).toISOString().slice(0, 10);
+    return txDate === todayKey;
+  });
+
+  await pdfHeader(doc, `Relevé journalier - ${today}`);
+
+  pdfInfoLine(doc, "Client :", profile.displayName || profile.username, 15, 65);
+  pdfInfoLine(doc, "IBAN :", profile.iban, 15, 75);
+  pdfInfoLine(doc, "Compte courant :", pdfMoney(profile.accounts?.courant || 0), 15, 85);
+  pdfInfoLine(doc, "Épargne :", pdfMoney(profile.accounts?.epargne || 0), 15, 95);
+
+  let y = 115;
+
+  doc.setFillColor(241, 245, 249);
+  doc.rect(15, y - 8, 180, 10, "F");
+
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(30, 41, 59);
+  doc.text("Libellé", 20, y);
+  doc.text("Montant", 160, y);
+
+  y += 12;
+
+  if (!transactions.length) {
+    doc.setFont("helvetica", "normal");
+    doc.text("Aucune transaction aujourd'hui.", 20, y);
+  } else {
+    transactions.forEach(tx => {
+      if (y > 270) {
+        doc.addPage();
+        pdfHeader(doc, `Relevé journalier - ${today}`);
+        y = 65;
+      }
+
+      const amount = Number(tx.amount || 0);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(40, 40, 40);
+      doc.text(String(tx.label || "Transaction").slice(0, 70), 20, y);
+
+      doc.setTextColor(amount >= 0 ? 20 : 180, amount >= 0 ? 140 : 40, 60);
+      doc.text(cleanPdfAmount(tx.amount), 155, y);
+
+      y += 10;
+    });
+  }
+
+  pdfFooter(doc);
+  doc.save(`releve-journalier-${todayKey}.pdf`);
+}
+
+async function generateBankContractPDF(profile) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const agency = profile.agency || {};
+  const cardType = profile.card?.type || "classic";
+  const card = BANK_CARDS[cardType] || BANK_CARDS.classic;
+
+  await pdfHeader(doc, "Contrat bancaire");
+
+  pdfInfoLine(doc, "Client :", profile.displayName || profile.username, 15, 65);
+  pdfInfoLine(doc, "Email :", profile.email, 15, 75);
+  pdfInfoLine(doc, "IBAN :", profile.iban, 15, 85);
+  pdfInfoLine(doc, "Carte :", card.name, 15, 95);
+  pdfInfoLine(doc, "Découvert :", pdfMoney(getOverdraftLimit(profile)), 15, 105);
+
+  pdfInfoLine(doc, "Conseiller :", agency.advisor || profile.advisor, 15, 125);
+  pdfInfoLine(doc, "Agence :", agency.name || "Cryptex Bank Bordeaux", 15, 135);
+
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(60, 60, 60);
+  doc.text(
+    "Le présent document atteste de l'ouverture d'un compte Cryptex Bank et de l'activation des services bancaires associés.",
+    15,
+    160,
+    { maxWidth: 180 }
+  );
+
+  doc.text("Signature client :", 15, 220);
+  doc.line(15, 235, 80, 235);
+
+  doc.text("Signature Cryptex Bank :", 115, 220);
+  doc.line(115, 235, 180, 235);
+
+  pdfFooter(doc);
+  doc.save("contrat-bancaire-cryptex.pdf");
+}
+
+async function generateInsuranceContractPDF(profile, insuranceId) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const insurance = INSURANCE_TYPES[insuranceId];
+  if (!insurance) return alert("Assurance introuvable.");
+
+  const contractId = `ASS-${Date.now()}`;
+
+  await pdfHeader(doc, "Contrat d'assurance");
+
+  pdfInfoLine(doc, "Contrat ID :", contractId, 15, 65);
+  pdfInfoLine(doc, "Client :", profile.displayName || profile.username, 15, 75);
+  pdfInfoLine(doc, "Email :", profile.email, 15, 85);
+  pdfInfoLine(doc, "IBAN :", profile.iban, 15, 95);
+  pdfInfoLine(doc, "Entreprise :", profile.isBusiness ? "Oui" : "Non", 15, 105);
+
+  pdfInfoLine(doc, "Assurance :", insurance.name, 15, 125);
+  pdfInfoLine(doc, "Montant :", `${pdfMoney(insurance.dailyFee)} / jour`, 15, 135);
+  pdfInfoLine(doc, "Protection :", insurance.protectsLoanType === "all" ? "Tous les prêts" : insurance.protectsLoanType, 15, 145);
+
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(60, 60, 60);
+  doc.text(
+    "Ce contrat confirme l'adhésion à l'assurance sélectionnée. Les frais sont prélevés quotidiennement tant que le contrat reste actif.",
+    15,
+    170,
+    { maxWidth: 180 }
+  );
+
+  pdfFooter(doc);
+  doc.save(`contrat-assurance-${insuranceId}.pdf`);
+}
+
+
+async function generateLoanContractPDF(profile, loan) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const agency = profile.agency || {};
+  const loanType = LOAN_TYPES[loan.type] || {};
+  const contractId = `LOAN-${loan.id || Date.now()}`;
+
+  await pdfHeader(doc, "Contrat de prêt");
+
+  pdfInfoLine(doc, "Contrat ID :", contractId, 15, 65);
+  pdfInfoLine(doc, "Client :", profile.displayName || profile.username, 15, 75);
+  pdfInfoLine(doc, "Email :", profile.email, 15, 85);
+  pdfInfoLine(doc, "IBAN :", profile.iban, 15, 95);
+  pdfInfoLine(doc, "Entreprise :", profile.isBusiness ? "Oui" : "Non", 15, 105);
+
+  pdfInfoLine(doc, "Type de prêt :", loanType.name || loan.type, 15, 125);
+  pdfInfoLine(doc, "Montant :", pdfMoney(loan.amount), 15, 135);
+  pdfInfoLine(doc, "Durée :", `${loan.durationMonths} mois`, 15, 145);
+  pdfInfoLine(doc, "Taux :", `${loan.rate}%`, 15, 155);
+  pdfInfoLine(doc, "Mensualité :", pdfMoney(loan.monthlyPayment), 15, 165);
+  pdfInfoLine(doc, "Assurance :", loan.insurance ? "Oui" : "Non", 15, 175);
+
+  pdfInfoLine(doc, "Conseiller :", agency.advisor || profile.advisor, 15, 195);
+  pdfInfoLine(doc, "Agence :", agency.name || "Cryptex Bank Bordeaux", 15, 205);
+
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(60, 60, 60);
+  doc.text(
+    "Ce contrat confirme l'accord du prêt par Cryptex Bank. Le remboursement est effectué selon les modalités définies ci-dessus.",
+    15,
+    225,
+    { maxWidth: 180 }
+  );
+
+  pdfFooter(doc);
+  doc.save(`contrat-pret-${loan.type}.pdf`);
 }
 
 
@@ -1644,6 +2858,7 @@ async function buyMarketAsset(uid, type, assetId) {
 async function sellMarketAsset(uid, type, assetId) {
   const profile = await getUserProfile(uid);
   if (!profile) return;
+  if (!requireActiveCard(profile)) return;
 
   const assets = type === "crypto" ? CRYPTOS : STOCKS;
   const asset = assets.find(a => a.id === assetId);
@@ -1826,6 +3041,7 @@ async function buyRealEstate(uid, propertyId) {
 async function sellRealEstate(uid, propertyId) {
   const profile = await getUserProfile(uid);
   if (!profile) return;
+  if (!requireActiveCard(profile)) return;
 
   const property = REAL_ESTATE.find(p => p.id === propertyId);
   if (!property) return;
@@ -2211,36 +3427,53 @@ async function takeLoan(uid) {
     lastPayment: Date.now()
   };
 
-  profile.loans.push(loan);
-  profile.accounts.courant += amount;
-    addNotification(
-    profile,
-    "Prêt accepté",
-    `${config.name} de ${formatMoney(amount)} accordé.`,
-    "success"
-  );
+  profile.pendingLoans = profile.pendingLoans || [];
 
-  addTransaction(
-    profile,
-    `${config.name}${insurance ? " avec assurance" : ""}`,
+  const pendingLoan = {
+    id: crypto.randomUUID(),
+    type,
     amount,
-    "loan"
+    durationMonths: duration,
+    rate: finalRate,
+    insurance,
+    monthlyPayment,
+    status: "pending",
+    createdAt: Date.now()
+  };
+
+  profile.pendingLoans.unshift(pendingLoan);
+
+  addTransaction(profile, `Demande de prêt : ${config.name}`, 0, "loan_request");
+
+  addNotification(
+    profile,
+    "Demande envoyée",
+    "Votre demande de prêt est en attente de validation conseiller.",
+    "info"
   );
 
-  addXp(profile, 15, "Prêt bancaire");
-  updateCreditScore(profile, 5);
+  profile.advisorMessages = profile.advisorMessages || [];
 
-  await updateUserProfile(uid, {
-    loans: profile.loans,
-    accounts: profile.accounts,
-    history: profile.history,
-    transactions: profile.transactions,
-    xp: profile.xp,
-    notifications: profile.notifications,
-    creditScore: profile.creditScore
+  profile.advisorMessages.unshift({
+    id: crypto.randomUUID(),
+    from: "user",
+    topic: "loan",
+    text: `Demande de ${config.name} : ${formatMoney(amount)} sur ${duration} mois.`,
+    status: "open",
+    archived: false,
+    pendingLoanId: pendingLoan.id,
+    createdAt: Date.now()
   });
 
-  alert("Prêt accepté et versé sur le compte courant.");
+  await updateUserProfile(uid, {
+    pendingLoans: profile.pendingLoans,
+    advisorMessages: profile.advisorMessages,
+    history: profile.history,
+    transactions: profile.transactions,
+    notifications: profile.notifications
+  });
+
+  alert("Demande envoyée au conseiller.");
   await renderBank(uid);
 }
 
@@ -2424,6 +3657,17 @@ async function renderBank(uid) {
       </div>
       `;
     }).join("");
+
+    document.querySelectorAll(".download-loan-contract-btn").forEach(btn => {
+      btn.onclick = async () => {
+        const profile = await getUserProfile(uid);
+        const loan = (profile.loans || []).find(l => l.id === btn.dataset.id);
+
+        if (!loan) return alert("Prêt introuvable.");
+
+        generateLoanContractPDF(profile, loan);
+      };
+    });
 
     document.querySelectorAll(".repay-part-loan-btn").forEach(btn => {
       btn.onclick = async () => {
@@ -2641,6 +3885,21 @@ async function renderInsurance(uid) {
 
   profile.insurances = profile.insurances || {};
 
+  const insuranceSelect = document.getElementById("insuranceContractSelect");
+
+  if (insuranceSelect) {
+    const activeInsurances = Object.entries(profile.insurances)
+      .filter(([, value]) => value.active === true);
+
+    insuranceSelect.innerHTML = activeInsurances.length
+      ? activeInsurances.map(([id]) => `
+          <option value="${id}">
+            ${INSURANCE_TYPES[id]?.name || id}
+          </option>
+        `).join("")
+      : `<option value="">Aucune assurance active</option>`;
+  }
+
   const list = document.getElementById("insuranceList");
   const mine = document.getElementById("myInsurances");
 
@@ -2687,6 +3946,7 @@ async function renderInsurance(uid) {
 async function toggleInsurance(uid, insuranceId) {
   const profile = await getUserProfile(uid);
   if (!profile) return;
+  if (!requireActiveCard(profile)) return;
 
   profile.insurances = profile.insurances || {};
   profile.history = profile.history || [];
@@ -2717,6 +3977,7 @@ async function toggleInsurance(uid, insuranceId) {
 
     addTransaction(profile, `Souscription ${item.name}`, 0, "insurance");
     addNotification(profile, "Assurance activée", `${item.name} est maintenant active.`, "success");
+    generateInsuranceContractPDF(profile, insuranceId);
   }
 
   await updateUserProfile(uid, {
@@ -2935,6 +4196,24 @@ function bindNotifications(uid) {
 
 let selectedAdvisorTopic = "pin";
 
+function getMessageStatusBadge(status) {
+
+  switch(status){
+
+    case "open":
+      return `<span class="status-badge status-open">🟠 En attente</span>`;
+
+    case "answered":
+      return `<span class="status-badge status-answered">🟢 Répondu</span>`;
+
+    case "closed":
+      return `<span class="status-badge status-closed">⚫ Fermé</span>`;
+
+    default:
+      return "";
+  }
+}
+
 function getAdvisorAutoReply(topic, profile) {
   const advisor = profile.agency?.advisor || profile.advisor || "votre conseiller";
 
@@ -2950,7 +4229,7 @@ function getAdvisorAutoReply(topic, profile) {
 }
 
 async function renderAdvisor(uid) {
-  const profile = await getUserProfile(uid);
+  const profile = await ensureAdvisorAssigned(uid);
   if (!profile) return;
 
   updateAdminNavVisibility(profile);
@@ -2999,16 +4278,22 @@ async function sendAdvisorMessage(uid) {
   profile.notifications = profile.notifications || [];
 
   profile.advisorMessages.unshift({
+    id: crypto.randomUUID(),
     from: "user",
     topic: selectedAdvisorTopic,
     text,
+    status: "open",
+    archived: false,
     createdAt: Date.now()
   });
 
   profile.advisorMessages.unshift({
+    id: crypto.randomUUID(),
     from: "bank",
     topic: selectedAdvisorTopic,
     text: getAdvisorAutoReply(selectedAdvisorTopic, profile),
+    status: "open",
+    archived: false,
     createdAt: Date.now()
   });
 
@@ -3033,6 +4318,14 @@ async function sendAdvisorMessage(uid) {
 async function initAdvisor(user) {
   bindLogout();
   bindNotifications(user.uid);
+  bindAppointmentSlots();
+
+  const bookAppointmentBtn = document.getElementById("bookAppointmentBtn");
+  if (bookAppointmentBtn) {
+    bookAppointmentBtn.onclick = async () => {
+      await bookAppointment(user.uid);
+    };
+  }
 
   document.querySelectorAll(".advisor-topic").forEach(btn => {
     btn.onclick = () => {
@@ -3049,6 +4342,74 @@ async function initAdvisor(user) {
   await renderAdvisor(user.uid);
 }
 
+let selectedAppointmentSlot = null;
+
+function bindAppointmentSlots() {
+  document.querySelectorAll(".appointment-slot").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll(".appointment-slot").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedAppointmentSlot = btn.dataset.slot;
+    };
+  });
+}
+
+async function bookAppointment(uid) {
+  const profile = await getUserProfile(uid);
+  if (!profile) return;
+
+  if (!selectedAppointmentSlot) {
+    alert("Choisis un créneau.");
+    return;
+  }
+
+  const reason = document.getElementById("appointmentReason")?.value.trim() || "Rendez-vous conseiller";
+
+  profile.advisorAppointments = profile.advisorAppointments || [];
+  profile.advisorMessages = profile.advisorMessages || [];
+  profile.notifications = profile.notifications || [];
+
+  const appointment = {
+    id: crypto.randomUUID(),
+    slot: selectedAppointmentSlot,
+    reason,
+    status: "scheduled",
+    createdAt: Date.now()
+  };
+
+  profile.advisorAppointments.unshift(appointment);
+
+  profile.advisorMessages.unshift({
+    id: crypto.randomUUID(),
+    from: "user",
+    topic: "appointment",
+    text: `Demande de rendez-vous : ${selectedAppointmentSlot} • Motif : ${reason}`,
+    status: "open",
+    archived: false,
+    createdAt: Date.now()
+  });
+
+  addNotification(
+    profile,
+    "Rendez-vous demandé",
+    `Votre demande de rendez-vous pour ${selectedAppointmentSlot} a été envoyée.`,
+    "info"
+  );
+
+  await updateUserProfile(uid, {
+    advisorAppointments: profile.advisorAppointments,
+    advisorMessages: profile.advisorMessages,
+    notifications: profile.notifications
+  });
+
+  alert("Demande de rendez-vous envoyée.");
+  document.getElementById("appointmentReason").value = "";
+  selectedAppointmentSlot = null;
+
+  document.querySelectorAll(".appointment-slot").forEach(b => b.classList.remove("active"));
+
+  await renderAdvisor(uid);
+}
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -3097,7 +4458,29 @@ async function initMarkets(user) {
 async function initInsurance(user) {
   bindLogout();
   bindNotifications(user.uid);
+
   await renderInsurance(user.uid);
+
+  const profile = await getUserProfile(user.uid);
+  renderNotificationDot(profile);
+
+  const insuranceContractBtn = document.getElementById("downloadInsuranceContractBtn");
+
+  if (insuranceContractBtn) {
+    insuranceContractBtn.onclick = async () => {
+      const profile = await getUserProfile(user.uid);
+
+      const activeInsuranceId =
+        document.getElementById("insuranceContractSelect")?.value;
+
+      if (!activeInsuranceId) {
+        alert("Tu n'as aucune assurance active.");
+        return;
+      }
+
+      generateInsuranceContractPDF(profile, activeInsuranceId);
+    };
+  }
 }
 
 function updateMarketDisplay(profile) {
