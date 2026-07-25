@@ -6,6 +6,7 @@
   <title>Entreprise - Cryptex Bank</title>
   <link rel="shortcut icon" href="img/logo.png">
   <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   
 </head>
 <body data-page="business">
@@ -27,12 +28,12 @@
 
     <div class="grid-2">
       <div class="card">
-        <h3>Revenus du mois</h3>
+        <h3>Revenus du Mois</h3>
         <h2 id="monthlyIncome">0 €</h2>
       </div>
 
       <div class="card">
-        <h3>Dépenses du mois</h3>
+        <h3>Dépenses du Mois</h3>
         <h2 id="monthlyExpense">0 €</h2>
       </div>
     </div>
@@ -46,7 +47,59 @@
       <h3>Détail mensuel</h3>
       <div id="businessMonthlyList"></div>
     </div>
+
+    <div id="siretSetupCard" class="card" style="display:none;">
+      <h3>Informations légales entreprise</h3>
+      <p class="small">
+        Le numéro SIRET est fortement conseillé pour les prêts professionnels, documents et attestations.
+      </p>
+
+      <input id="businessSiretInput" type="text" placeholder="Numéro SIRET">
+
+      <div class="row">
+        <button id="saveSiretBtn">Enregistrer le SIRET</button>
+        <button id="skipSiretBtn" class="secondary">Plus tard</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Salariés</h3>
+      <p class="small">Ajoutez vos salariés et gérez les salaires mensuels.</p>
+
+      <div class="grid-2">
+        <input id="employeeFirstName" type="text" placeholder="Prénom">
+        <input id="employeeLastName" type="text" placeholder="Nom">
+      </div>
+
+      <input id="employeePosition" type="text" placeholder="Poste">
+      <input id="employeeDailyGross" type="number" placeholder="Salaire brut / jour">
+      <input id="employeeHours" type="number" placeholder="Heures travaillées aujourd'hui" value="8">
+
+      <input id="employeeCryptexEmail" type="email" placeholder="Email Cryptex du salarié si existant">
+</br>
+</br>
+      <button id="addEmployeeBtn">Ajouter le salarié</button>
+
+      <div id="employeesList" style="margin-top:16px;"></div>
+    </div>
+
+    <div class="card">
+      <h3>Cartes professionnelles</h3>
+
+      <div id="businessCardsList"></div>
+    </div>
+
+    <div class="card">
+      <h3>Documents entreprise</h3>
+      <p class="small">Téléchargez vos documents professionnels.</p>
+
+      <a href="business-documents.html">
+        <button>📄 Mes documents</button>
+      </a>
+    </div>
+
   </div>
+
 
   <footer class="cryptex-footer">
 
