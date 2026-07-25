@@ -96,6 +96,27 @@ function getOverdraftLimit(profile) {
 
   total += profile.customOverdraft || 0;
 
+  if (
+    profile.card?.type ===
+    "business"
+  ){
+    return 2000;
+  }
+
+  if (
+    profile.card?.type ===
+    "business_premium"
+  ){
+    return 10000;
+  }
+
+  if (
+    profile.card?.type ===
+    "business_black"
+  ){
+    return 50000;
+  }
+
   if (profile.temporaryOverdraft && profile.temporaryOverdraft.until > Date.now()) {
     total += profile.temporaryOverdraft.amount || 0;
   }
@@ -257,6 +278,30 @@ const BANK_CARDS = {
     savingBonus: 1,
     feeReduction: 20
   }
+};
+
+BANK_CARDS.business = {
+  name: "Business",
+  overdraft: 2000,
+  color: "#2563eb",
+  savingBonus: 0.4,
+  feeReduction: 10
+};
+
+BANK_CARDS.business_premium = {
+  name: "Business Premium",
+  overdraft: 10000,
+  color: "#7c3aed",
+  savingBonus: 1,
+  feeReduction: 15
+};
+
+BANK_CARDS.business_black = {
+  name: "Business Black",
+  overdraft: 50000,
+  color: "#111827",
+  savingBonus: 2,
+  feeReduction: 40
 };
 
 const DAILY_BANK_FEE = 1.50; // frais bancaires de base / jour
@@ -1516,11 +1561,27 @@ async function openAdvisorConversation(targetUid, currentUid) {
             <small>Le client pourra créer un nouveau code.</small>
           </button>
 
+          <button class="admin-action-tile" data-action="reset_siret" data-uid="${targetUid}">
+            🏢
+            <strong>Réinitialiser SIRET</strong>
+            <small>L’entreprise pourra renseigner un nouveau SIRET.</small>
+          </button>
+
           <button class="admin-action-tile" data-action="toggle_card" data-uid="${targetUid}">
             <span>💳</span>
             <strong>Bloquer / Débloquer carte</strong>
             <small>Sécurité en cas de perte ou vol.</small>
           </button>
+
+          <div class="admin-action-tile form-tile">
+            <span>♾️</span>
+            <strong>Découvert permanent</strong>
+            <small>Modifier le découvert du client.</small>
+
+            <input id="adminPermanentOverdraftAmount" type="number" value="${profile.customOverdraft || 0}" placeholder="Montant">
+
+            <button id="grantPermanentOverdraftBtn">Modifier</button>
+          </div>
 
           <div class="admin-action-tile form-tile">
             <span>💸</span>
@@ -1536,16 +1597,6 @@ async function openAdvisorConversation(targetUid, currentUid) {
               class="secondary">
               ❌ Supprimer
             </button>
-          </div>
-
-          <div class="admin-action-tile form-tile">
-            <span>♾️</span>
-            <strong>Découvert permanent</strong>
-            <small>Modifier le découvert du client.</small>
-
-            <input id="adminPermanentOverdraftAmount" type="number" value="${profile.customOverdraft || 0}" placeholder="Montant">
-
-            <button id="grantPermanentOverdraftBtn">Modifier</button>
           </div>
         </div>
       </div>
@@ -1729,6 +1780,10 @@ async function runAdminAdvisorAction(targetUid, action) {
     await adminResetPin(targetUid);
   }
 
+  if (action === "reset_siret") {
+    await adminResetSiret(targetUid);
+  }
+
   if (action === "toggle_card") {
     await adminToggleCard(targetUid);
   }
@@ -1766,6 +1821,42 @@ async function adminResetPin(targetUid) {
   });
 
   alert("PIN réinitialisé.");
+}
+
+async function adminResetSiret(targetUid) {
+  const profile = await getUserProfile(targetUid);
+  if (!profile) return;
+
+  if (!profile.isBusiness) {
+    alert("Ce compte n'est pas un compte entreprise.");
+    return;
+  }
+
+  profile.notifications = profile.notifications || [];
+
+  addTransaction(
+    profile,
+    "Admin : réinitialisation du SIRET",
+    0,
+    "admin_business"
+  );
+
+  addNotification(
+    profile,
+    "SIRET à renseigner",
+    "Votre conseiller a réinitialisé votre SIRET. Vous pouvez en renseigner un nouveau dans l’onglet Entreprise.",
+    "info"
+  );
+
+  await updateUserProfile(targetUid, {
+    businessSiret: "",
+    siretSetupDone: false,
+    history: profile.history,
+    transactions: profile.transactions,
+    notifications: profile.notifications
+  });
+
+  alert("SIRET réinitialisé.");
 }
 
 
@@ -2077,6 +2168,44 @@ async function renderProfile(uid) {
   document.getElementById("agencyName").innerText = agency.name;
   document.getElementById("agencyAddress").innerText = agency.address;
   document.getElementById("agencyHours").innerText = agency.hours;
+
+  const profilePaySlips = document.getElementById("profilePaySlips");
+
+  if (profilePaySlips) {
+    const paySlips = profile.paySlips || [];
+
+    profilePaySlips.innerHTML = paySlips.length
+      ? paySlips.slice(0, 10).map(slip => `
+        <div class="list-item">
+          <strong>${escapeHtml(slip.employerName || "Entreprise")}</strong>
+          <p class="small">Date : ${escapeHtml(slip.dateKey)}</p>
+          <p>Heures travaillées : <strong>${slip.workedHours}h</strong></p>
+          <p>Salaire brut : ${formatMoney(slip.gross)}</p>
+          <p>Charges salariales : -${formatMoney(slip.employeeCharges)}</p>
+          <p>Salaire net reçu : <strong>${formatMoney(slip.netPaid)}</strong></p>
+          <p class="small">Coût total payé par l'entreprise : ${formatMoney(slip.realCompanyCost)}</p>
+
+          <button class="download-payslip-btn secondary" data-id="${slip.id}">
+            📄 Télécharger la fiche
+          </button>
+        </div>
+      `).join("")
+      : `<div class="list-item">Aucune fiche de paie disponible.</div>`;
+  }
+
+  document.querySelectorAll(".download-payslip-btn").forEach(btn => {
+    btn.onclick = async () => {
+      const profile = await getUserProfile(uid);
+      const slip = (profile.paySlips || []).find(s => s.id === btn.dataset.id);
+
+      if (!slip) {
+        alert("Fiche de paie introuvable.");
+        return;
+      }
+
+      await generatePaySlipPDF(slip, profile);
+    };
+  });
 }
 
 const ADVISORS = [
@@ -3138,6 +3267,32 @@ async function applyRealEstateIncome(uid) {
                              /// ENTREPRISE ///
 /////////////////////////////////////////////////////////////////////////
 
+const EMPLOYEE_PAYROLL = {
+  employeeChargesRate: 0.22, // charges salariales fictives
+  employerChargesRate: 0.42  // charges patronales fictives
+};
+
+function calculateDailyPayroll(dailyGross, hours = 8) {
+  const gross = Number(dailyGross || 0);
+  const workedHours = Number(hours || 8);
+
+  const employeeCharges = gross * EMPLOYEE_PAYROLL.employeeChargesRate;
+  const employerCharges = gross * EMPLOYEE_PAYROLL.employerChargesRate;
+
+  const netPaid = gross - employeeCharges;
+  const realCompanyCost = gross + employerCharges;
+
+  return {
+    workedHours,
+    gross,
+    employeeCharges,
+    employerCharges,
+    netPaid,
+    realCompanyCost
+  };
+}
+
+
 let businessChart = null;
 
 function getMonthKey(date = new Date()) {
@@ -3250,6 +3405,35 @@ function renderBusinessChart(data) {
   });
 }
 
+async function saveBusinessSiret(uid) {
+  const profile = await getUserProfile(uid);
+  if (!profile) return;
+
+  const input = document.getElementById("businessSiretInput");
+  const siret = input?.value.trim() || "";
+
+  if (!siret) {
+    alert("Entre un SIRET ou clique sur Plus tard.");
+    return;
+  }
+
+  await updateUserProfile(uid, {
+    businessSiret: siret,
+    siretSetupDone: true
+  });
+
+  alert("SIRET enregistré.");
+  await renderBusiness(uid);
+}
+
+async function skipBusinessSiret(uid) {
+  await updateUserProfile(uid, {
+    siretSetupDone: true
+  });
+
+  await renderBusiness(uid);
+}
+
 async function renderBusiness(uid) {
   const profile = await getUserProfile(uid);
   if (!profile) return;
@@ -3260,7 +3444,21 @@ async function renderBusiness(uid) {
     return;
   }
 
-updateBusinessNavVisibility(profile);
+  const siretSetupCard = document.getElementById("siretSetupCard");
+  const businessSiretInput = document.getElementById("businessSiretInput");
+
+  if (siretSetupCard) {
+    siretSetupCard.style.display =
+      !profile.siretSetupDone && !profile.businessSiret
+        ? "block"
+        : "none";
+  }
+
+  if (businessSiretInput) {
+    businessSiretInput.value = profile.businessSiret || "";
+  }
+
+  updateBusinessNavVisibility(profile);
 
   updateAdminNavVisibility(profile);
   updateBusinessNavVisibility(profile);
@@ -3285,15 +3483,194 @@ updateBusinessNavVisibility(profile);
     `).join("");
   }
 
+  const employeesList = document.getElementById("employeesList");
+
+  if (employeesList) {
+    const employees = profile.employees || [];
+
+    employeesList.innerHTML = employees.length
+      ? employees.map(emp => {
+          const payroll = calculateDailyPayroll(emp.dailyGross, emp.defaultHours);
+
+          return `
+        <div class="list-item">
+          <strong>${escapeHtml(emp.firstName)} ${escapeHtml(emp.lastName)}</strong>
+          <p class="small">${escapeHtml(emp.position)}</p>
+          <p>Salaire brut : <strong>${formatMoney(payroll.gross)} / jour</strong></p>
+          <p class="small">Net salarié : ${formatMoney(payroll.netPaid)} / jour</p>
+          <p class="small">Charges patronales : ${formatMoney(payroll.employerCharges)} / jour</p>
+          <p class="small">Coût réel entreprise : ${formatMoney(payroll.realCompanyCost)} / jour</p>
+          <p class="small">Heures par défaut : ${payroll.workedHours}h</p>
+
+          <input class="employee-hours-input" data-id="${emp.id}" type="number" value="${emp.defaultHours || 8}" placeholder="Heures aujourd'hui">
+          
+          <button class="pay-employee-today-btn" data-id="${emp.id}">
+            Verser aujourd'hui
+          </button>
+
+          <p class="small">Compte Cryptex : ${escapeHtml(emp.cryptexEmail || "Non renseigné")}</p>
+
+          <div class="payroll-explain">
+            <p class="small">
+              Le salaire saisi correspond au <strong>brut journalier</strong>.
+            </p>
+            <p class="small">
+              Net versé salarié = brut - charges salariales.
+            </p>
+            <p class="small">
+              Coût entreprise = brut + charges patronales.
+            </p>
+          </div>
+
+          </br>
+
+          <button class="remove-employee-btn secondary" data-id="${emp.id}">
+            Supprimer
+          </button>
+        </div>
+      `;
+        }).join("")
+      : `<div class="list-item">Aucun salarié.</div>`;
+  }
+
+  document.querySelectorAll(".remove-employee-btn").forEach(btn => {
+    btn.onclick = async () => {
+      await removeEmployee(uid, btn.dataset.id);
+    };
+  });
+
+  document.querySelectorAll(".pay-employee-today-btn").forEach(btn => {
+    btn.onclick = async () => {
+      const input = document.querySelector(`.employee-hours-input[data-id="${btn.dataset.id}"]`);
+      const hours = Number(input?.value || 8);
+      await payEmployeeToday(uid, btn.dataset.id, hours);
+    };
+  });
+
+
+  const businessCardsList =
+    document.getElementById("businessCardsList");
+
+  if (businessCardsList) {
+
+    const employeeCount =
+      (profile.employees || []).length;
+
+    businessCardsList.innerHTML = `
+
+      <div class="business-card-option">
+        <h4>💳 Business</h4>
+        <p>Découvert : 2 000 €</p>
+
+        <button
+          class="select-business-card-btn"
+          data-card="business">
+          Choisir
+        </button>
+      </div>
+
+      <div class="business-card-option">
+        <h4>💎 Business Premium</h4>
+        <p>Minimum 5 salariés</p>
+        <p>Découvert : 10 000 €</p>
+
+        ${
+          employeeCount >= 5
+          ? `
+            <button
+              class="select-business-card-btn"
+              data-card="business_premium">
+              Choisir
+            </button>
+          `
+          : `
+            <button disabled>
+              ${employeeCount}/5 salariés
+            </button>
+          `
+        }
+      </div>
+
+      <div class="business-card-option">
+        <h4>🖤 Business Black</h4>
+        <p>Minimum 20 salariés + SIRET</p>
+        <p>Découvert : 50 000 €</p>
+
+        ${
+          employeeCount >= 20 &&
+          profile.businessSiret
+          ? `
+            <button
+              class="select-business-card-btn"
+              data-card="business_black">
+              Choisir
+            </button>
+          `
+          : `
+            <button disabled>
+              Conditions non remplies
+            </button>
+          `
+        }
+      </div>
+
+    `;
+  }
+
+  document
+  .querySelectorAll(
+    ".select-business-card-btn"
+  )
+  .forEach(btn => {
+
+    btn.onclick = async () => {
+
+      await updateUserProfile(uid,{
+        card:{
+          ...(profile.card || {}),
+          type: btn.dataset.card
+        }
+      });
+
+      alert("Carte mise à jour.");
+
+      await renderBusiness(uid);
+
+    };
+
+  });
+
   //renderBusinessChart(data);
 }
 
 async function initBusiness(user) {
   bindLogout();
   bindNotifications(user.uid);
+  await applyEmployeeSalaries(user.uid);
   await renderBusiness(user.uid);
   const profile = await getUserProfile(user.uid);
   renderNotificationDot(profile);
+  const addEmployeeBtn = document.getElementById("addEmployeeBtn");
+
+  if (addEmployeeBtn) {
+    addEmployeeBtn.onclick = async () => {
+      await addEmployee(user.uid);
+    };
+  }
+
+  const saveSiretBtn = document.getElementById("saveSiretBtn");
+  if (saveSiretBtn) {
+    saveSiretBtn.onclick = async () => {
+      await saveBusinessSiret(user.uid);
+    };
+  }
+
+  const skipSiretBtn = document.getElementById("skipSiretBtn");
+  if (skipSiretBtn) {
+    skipSiretBtn.onclick = async () => {
+      await skipBusinessSiret(user.uid);
+    };
+  }
 }
 
 function updateBusinessNavVisibility(profile) {
@@ -3302,6 +3679,560 @@ function updateBusinessNavVisibility(profile) {
     businessNavLink.style.display = profile?.isBusiness ? "flex" : "none";
   }
 }
+
+async function addEmployee(uid) {
+  const profile = await getUserProfile(uid);
+  if (!profile) return;
+
+  const firstName = document.getElementById("employeeFirstName").value.trim();
+  const lastName = document.getElementById("employeeLastName").value.trim();
+  const position = document.getElementById("employeePosition").value.trim();
+  const dailyGross = Number(document.getElementById("employeeDailyGross").value || 0);
+  const defaultHours = Number(document.getElementById("employeeHours").value || 8);
+  const cryptexEmail = document.getElementById("employeeCryptexEmail").value.trim();
+
+  if (!firstName || !lastName || !position || dailyGross <= 0) {
+    alert("Remplis tous les champs obligatoires.");
+    return;
+  }
+
+  profile.employees = profile.employees || [];
+
+  profile.employees.unshift({
+    id: crypto.randomUUID(),
+    firstName,
+    lastName,
+    position,
+    dailyGross,
+    defaultHours,
+    paySlips: [],
+    lastSalaryPayment: Date.now(),
+    cryptexEmail,
+    hiredAt: Date.now(),
+  });
+
+  addTransaction(profile, `Ajout salarié : ${firstName} ${lastName}`, 0, "employee");
+
+  await updateUserProfile(uid, {
+    employees: profile.employees,
+    history: profile.history,
+    transactions: profile.transactions
+  });
+
+  await renderBusiness(uid);
+}
+
+async function removeEmployee(uid, employeeId) {
+  const profile = await getUserProfile(uid);
+  if (!profile) return;
+
+  profile.employees = profile.employees || [];
+
+  const employee = profile.employees.find(e => e.id === employeeId);
+
+  profile.employees = profile.employees.filter(e => e.id !== employeeId);
+
+  if (employee) {
+    addTransaction(
+      profile,
+      `Suppression salarié : ${employee.firstName} ${employee.lastName}`,
+      0,
+      "employee"
+    );
+  }
+
+  await updateUserProfile(uid, {
+    employees: profile.employees,
+    history: profile.history,
+    transactions: profile.transactions
+  });
+
+  await renderBusiness(uid);
+}
+
+
+async function applyEmployeeSalaries(uid) {
+  const companyProfile = await getUserProfile(uid);
+  if (!companyProfile) return null;
+
+  if (!companyProfile.isBusiness) return null;
+
+  companyProfile.accounts = companyProfile.accounts || { courant: 0, epargne: 0 };
+  companyProfile.employees = companyProfile.employees || [];
+  companyProfile.transactions = companyProfile.transactions || [];
+  companyProfile.history = companyProfile.history || [];
+  companyProfile.notifications = companyProfile.notifications || [];
+
+  const now = Date.now();
+  const oneDayMs = 24 * 60 * 60 * 1000;
+
+  let totalPaid = 0;
+  let paidCount = 0;
+
+  for (const employee of companyProfile.employees) {
+    const lastPayment = employee.lastSalaryPayment || employee.hiredAt || now;
+
+    if (now - lastPayment < oneDayMs) continue;
+
+    const salary = Number(employee.salary || 0);
+    if (salary <= 0) continue;
+
+    if (!canPayWithOverdraft(companyProfile, salary)) {
+      addTransaction(
+        companyProfile,
+        `Salaire impayé : ${employee.firstName} ${employee.lastName}`,
+        0,
+        "salary_unpaid"
+      );
+
+      addNotification(
+        companyProfile,
+        "Salaire impayé",
+        `Le salaire de ${employee.firstName} ${employee.lastName} n'a pas pu être payé.`,
+        "warning"
+      );
+
+      continue;
+    }
+
+    companyProfile.accounts.courant -= salary;
+    employee.lastSalaryPayment = now;
+
+    addTransaction(
+      companyProfile,
+      `Salaire versé : ${employee.firstName} ${employee.lastName}`,
+      -salary,
+      "salary"
+    );
+
+    totalPaid += salary;
+    paidCount++;
+
+    if (employee.cryptexEmail) {
+      const users = await getAllUsers();
+      const employeeProfile = users.find(u =>
+        String(u.email || "").toLowerCase() === String(employee.cryptexEmail).toLowerCase()
+      );
+
+      if (employeeProfile) {
+        employeeProfile.accounts = employeeProfile.accounts || { courant: 0, epargne: 0 };
+        employeeProfile.transactions = employeeProfile.transactions || [];
+        employeeProfile.history = employeeProfile.history || [];
+        employeeProfile.notifications = employeeProfile.notifications || [];
+
+        employeeProfile.accounts.courant += salary;
+
+        addTransaction(
+          employeeProfile,
+          `Salaire reçu de ${companyProfile.displayName || companyProfile.username || "Entreprise"}`,
+          salary,
+          "salary_income"
+        );
+
+        addNotification(
+          employeeProfile,
+          "Salaire reçu",
+          `Vous avez reçu ${formatMoney(salary)} de votre employeur.`,
+          "success"
+        );
+
+        await updateUserProfile(employeeProfile.uid, {
+          accounts: employeeProfile.accounts,
+          history: employeeProfile.history,
+          transactions: employeeProfile.transactions,
+          notifications: employeeProfile.notifications
+        });
+      }
+    }
+  }
+
+  if (paidCount > 0) {
+    addNotification(
+      companyProfile,
+      "Salaires versés",
+      `${paidCount} salaire(s) versé(s) pour un total de ${formatMoney(totalPaid)}.`,
+      "info"
+    );
+  }
+
+  await updateUserProfile(uid, {
+    accounts: companyProfile.accounts,
+    employees: companyProfile.employees,
+    history: companyProfile.history,
+    transactions: companyProfile.transactions,
+    notifications: companyProfile.notifications
+  });
+
+  return paidCount > 0
+    ? `👨‍💼 Salaires versés : <strong>${formatMoney(totalPaid)}</strong>`
+    : null;
+}
+
+
+async function payEmployeeToday(uid, employeeId, hours = 8) {
+  const companyProfile = await getUserProfile(uid);
+  if (!companyProfile) return;
+
+  companyProfile.accounts = companyProfile.accounts || { courant: 0, epargne: 0 };
+  companyProfile.employees = companyProfile.employees || [];
+  companyProfile.transactions = companyProfile.transactions || [];
+  companyProfile.history = companyProfile.history || [];
+  companyProfile.notifications = companyProfile.notifications || [];
+
+  const employee = companyProfile.employees.find(e => e.id === employeeId);
+  if (!employee) return alert("Salarié introuvable.");
+
+  const todayKey = new Date().toISOString().slice(0, 10);
+
+  if ((employee.paySlips || []).some(p => p.dateKey === todayKey)) {
+    return alert("Ce salarié a déjà une fiche de paie aujourd'hui.");
+  }
+
+  const payroll = calculateDailyPayroll(employee.dailyGross, hours);
+
+  if (!canPayWithOverdraft(companyProfile, payroll.realCompanyCost)) {
+    addTransaction(companyProfile, `Salaire impayé : ${employee.firstName} ${employee.lastName}`, 0, "salary_unpaid");
+    addNotification(companyProfile, "Salaire impayé", `Impossible de payer ${employee.firstName} ${employee.lastName}.`, "warning");
+    return;
+  }
+
+  companyProfile.accounts.courant -= payroll.realCompanyCost;
+
+  const paySlip = {
+    id: crypto.randomUUID(),
+    employeeId: employee.id,
+    employeeName: `${employee.firstName} ${employee.lastName}`,
+    position: employee.position,
+    dateKey: todayKey,
+    workedHours: payroll.workedHours,
+    gross: payroll.gross,
+    employeeCharges: payroll.employeeCharges,
+    employerCharges: payroll.employerCharges,
+    netPaid: payroll.netPaid,
+    realCompanyCost: payroll.realCompanyCost,
+    createdAt: Date.now()
+  };
+
+  employee.paySlips = employee.paySlips || [];
+  employee.paySlips.unshift(paySlip);
+  employee.lastSalaryPayment = Date.now();
+
+  addTransaction(
+    companyProfile,
+    `Paie journalière : ${employee.firstName} ${employee.lastName}`,
+    -payroll.realCompanyCost,
+    "salary"
+  );
+
+  const users = await getAllUsers();
+  const employeeProfile = users.find(u =>
+    String(u.email || "").toLowerCase() === String(employee.cryptexEmail || "").toLowerCase()
+  );
+
+  if (employeeProfile) {
+    employeeProfile.accounts = employeeProfile.accounts || { courant: 0, epargne: 0 };
+    employeeProfile.transactions = employeeProfile.transactions || [];
+    employeeProfile.history = employeeProfile.history || [];
+    employeeProfile.notifications = employeeProfile.notifications || [];
+    employeeProfile.paySlips = employeeProfile.paySlips || [];
+
+    employeeProfile.accounts.courant += payroll.netPaid;
+    employeeProfile.paySlips.unshift({
+      ...paySlip,
+      employerName: companyProfile.displayName || companyProfile.username || "Entreprise"
+    });
+
+    addTransaction(
+      employeeProfile,
+      `Salaire reçu : ${companyProfile.displayName || companyProfile.username || "Entreprise"}`,
+      payroll.netPaid,
+      "salary_income"
+    );
+
+    addNotification(
+      employeeProfile,
+      "Salaire reçu",
+      `Vous avez reçu ${formatMoney(payroll.netPaid)}. Votre fiche de paie du jour est disponible dans votre profil.`,
+      "success"
+    );
+
+    await updateUserProfile(employeeProfile.uid, {
+      accounts: employeeProfile.accounts,
+      history: employeeProfile.history,
+      transactions: employeeProfile.transactions,
+      notifications: employeeProfile.notifications,
+      paySlips: employeeProfile.paySlips
+    });
+  }
+
+  await updateUserProfile(uid, {
+    accounts: companyProfile.accounts,
+    employees: companyProfile.employees,
+    history: companyProfile.history,
+    transactions: companyProfile.transactions,
+    notifications: companyProfile.notifications
+  });
+
+  alert("Paie journalière versée.");
+  await renderBusiness(uid);
+}
+
+async function generatePaySlipPDF(paySlip, profile) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  await pdfHeader(doc, "Fiche de paie journalière");
+
+  pdfInfoLine(doc, "Salarié :", paySlip.employeeName, 15, 65);
+  pdfInfoLine(doc, "Poste :", paySlip.position, 15, 75);
+  pdfInfoLine(doc, "Entreprise :", paySlip.employerName || profile.displayName || profile.username, 15, 85);
+  pdfInfoLine(doc, "Date :", paySlip.dateKey, 15, 95);
+
+  pdfInfoLine(doc, "Heures travaillées :", `${paySlip.workedHours}h`, 15, 115);
+  pdfInfoLine(doc, "Salaire brut :", pdfMoney(paySlip.gross), 15, 125);
+  pdfInfoLine(doc, "Charges salariales :", pdfMoney(paySlip.employeeCharges), 15, 135);
+  pdfInfoLine(doc, "Net versé :", pdfMoney(paySlip.netPaid), 15, 145);
+
+  pdfInfoLine(doc, "Charges patronales :", pdfMoney(paySlip.employerCharges), 15, 165);
+  pdfInfoLine(doc, "Coût total entreprise :", pdfMoney(paySlip.realCompanyCost), 15, 175);
+
+  pdfFooter(doc);
+  doc.save(`fiche-paie-${paySlip.dateKey}.pdf`);
+}
+
+
+
+// DOCUMENTD ENTREPRISE //
+
+async function initBusinessDocuments(user) {
+  bindLogout();
+  bindNotifications(user.uid);
+
+  const profile = await getUserProfile(user.uid);
+
+  if (!profile?.isBusiness) {
+    alert("Page réservée aux comptes entreprise.");
+    window.location.href = "home.html";
+    return;
+  }
+
+  updateAdminNavVisibility(profile);
+  updateBusinessNavVisibility(profile);
+  renderNotificationDot(profile);
+
+  document.getElementById("downloadBusinessMonthlyReportBtn").onclick = async () => {
+    const profile = await getUserProfile(user.uid);
+    await generateBusinessMonthlyReportPDF(profile);
+  };
+
+  document.getElementById("downloadBusinessBankCertificateBtn").onclick = async () => {
+    const profile = await getUserProfile(user.uid);
+    await generateBusinessBankCertificatePDF(profile);
+  };
+
+  document.getElementById("downloadEmployeesReportBtn").onclick = async () => {
+    const profile = await getUserProfile(user.uid);
+    await generateEmployeesReportPDF(profile);
+  };
+
+  document.getElementById("downloadBusinessTransactionsBtn").onclick = async () => {
+    const profile = await getUserProfile(user.uid);
+    await generateBusinessTransactionsPDF(profile);
+  };
+}
+
+async function generateBusinessMonthlyReportPDF(profile) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  await pdfHeader(doc, "Bilan entreprise du mois");
+
+  const data = buildBusinessStats(profile);
+  const currentMonth = data[data.length - 1];
+  const employees = profile.employees || [];
+  const agency = profile.agency || {};
+
+  const profit = currentMonth.income - currentMonth.expense;
+
+  pdfInfoLine(doc, "Entreprise :", profile.displayName || profile.username, 15, 65);
+  pdfInfoLine(doc, "Email :", profile.email, 15, 75);
+  pdfInfoLine(doc, "SIRET :", profile.businessSiret || "Non renseigné", 15, 85);
+  pdfInfoLine(doc, "IBAN :", profile.iban, 15, 95);
+  pdfInfoLine(doc, "Mois :", currentMonth.label, 15, 105);
+
+  pdfInfoLine(doc, "CA du mois :", pdfMoney(currentMonth.income), 15, 125);
+  pdfInfoLine(doc, "Charges du mois :", pdfMoney(currentMonth.expense), 15, 135);
+  pdfInfoLine(doc, "Bénéfice net :", pdfMoney(profit), 15, 145);
+  pdfInfoLine(doc, "Salariés :", employees.length, 15, 155);
+
+  pdfInfoLine(doc, "Solde courant :", pdfMoney(profile.accounts?.courant || 0), 15, 175);
+  pdfInfoLine(doc, "Épargne :", pdfMoney(profile.accounts?.epargne || 0), 15, 185);
+
+  pdfInfoLine(doc, "Conseiller :", agency.advisor || profile.advisor, 15, 205);
+  pdfInfoLine(doc, "Agence :", agency.name || "Cryptex Bank Bordeaux", 15, 215);
+
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(60, 60, 60);
+  doc.text(
+    "Ce document présente une synthèse mensuelle de l'activité financière du compte entreprise.",
+    15,
+    230,
+    { maxWidth: 180 }
+  );
+
+  pdfFooter(doc);
+  doc.save("bilan-entreprise-mensuel.pdf");
+}
+
+async function generateBusinessBankCertificatePDF(profile) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  await pdfHeader(doc, "Attestation bancaire entreprise");
+
+  const agency = profile.agency || {};
+
+  pdfInfoLine(doc, "Entreprise :", profile.displayName || profile.username, 15, 65);
+  pdfInfoLine(doc, "Email :", profile.email, 15, 75);
+  pdfInfoLine(doc, "SIRET :", profile.businessSiret || "Non renseigné", 15, 85);
+  pdfInfoLine(doc, "IBAN :", profile.iban, 15, 95);
+  pdfInfoLine(doc, "Compte entreprise :", profile.isBusiness ? "Oui" : "Non", 15, 105);
+  pdfInfoLine(doc, "Client depuis :", formatDate(profile.createdAt), 15, 115);
+
+  pdfInfoLine(doc, "Solde courant :", pdfMoney(profile.accounts?.courant || 0), 15, 135);
+  pdfInfoLine(doc, "Compte épargne :", pdfMoney(profile.accounts?.epargne || 0), 15, 145);
+  pdfInfoLine(doc, "Découvert autorisé :", pdfMoney(getOverdraftLimit(profile)), 15, 155);
+
+  pdfInfoLine(doc, "Conseiller :", agency.advisor || profile.advisor, 15, 175);
+  pdfInfoLine(doc, "Rôle :", agency.role || "Conseiller entreprises", 15, 185);
+  pdfInfoLine(doc, "Téléphone :", agency.phone || "05 56 00 00 00", 15, 195);
+  pdfInfoLine(doc, "Email agence :", agency.email || "conseiller@cryptex-bank.fr", 15, 205);
+
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(60, 60, 60);
+  doc.text(
+    "Cryptex Bank atteste que le compte indiqué ci-dessus est ouvert dans ses livres au nom de l'entreprise mentionnée.",
+    15,
+    225,
+    { maxWidth: 180 }
+  );
+
+  pdfFooter(doc);
+  doc.save("attestation-bancaire-entreprise.pdf");
+}
+
+async function generateEmployeesReportPDF(profile) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  await pdfHeader(doc, "Récapitulatif salariés");
+
+  const employees = profile.employees || [];
+
+  pdfInfoLine(doc, "Entreprise :", profile.displayName || profile.username, 15, 65);
+  pdfInfoLine(doc, "SIRET :", profile.businessSiret || "Non renseigné", 15, 75);
+  pdfInfoLine(doc, "Nombre de salariés :", employees.length, 15, 85);
+
+  let y = 100;
+
+  if (!employees.length) {
+    doc.text("Aucun salarié enregistré.", 15, y);
+  } else {
+    employees.forEach(emp => {
+      if (y > 255) {
+        doc.addPage();
+        pdfHeader(doc, "Récapitulatif salariés");
+        y = 65;
+      }
+
+      const payroll = calculateDailyPayroll(emp.dailyGross, emp.defaultHours || 8);
+
+      doc.setFillColor(241, 245, 249);
+      doc.rect(15, y - 7, 180, 60, "F");
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${emp.firstName} ${emp.lastName}`, 20, y);
+
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(60, 60, 60);
+      doc.text(`Poste : ${emp.position || "Non renseigné"}`, 20, y + 8);
+      doc.text(`Email Cryptex : ${emp.cryptexEmail || "Non renseigné"}`, 20, y + 16);
+      doc.text(`Brut / jour : ${pdfMoney(payroll.gross)}`, 20, y + 24);
+      doc.text(`Net salarié / jour : ${pdfMoney(payroll.netPaid)}`, 20, y + 32);
+      doc.text(`Charges patronales / jour : ${pdfMoney(payroll.employerCharges)}`, 20, y + 40);
+      doc.text(`Coût entreprise / jour : ${pdfMoney(payroll.realCompanyCost)}`, 20, y + 48);
+
+      y += 70;
+    });
+  }
+
+  pdfFooter(doc);
+  doc.save("recapitulatif-salaries.pdf");
+}
+
+async function generateBusinessTransactionsPDF(profile) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  await pdfHeader(doc, "Relevé transactions professionnelles");
+
+  const currentMonthKey = getMonthKey();
+  const transactions = (profile.transactions || []).filter(tx => {
+    const month = tx.monthKey || getMonthKey(new Date(tx.createdAt || Date.now()));
+    return month === currentMonthKey;
+  });
+
+  pdfInfoLine(doc, "Entreprise :", profile.displayName || profile.username, 15, 65);
+  pdfInfoLine(doc, "SIRET :", profile.businessSiret || "Non renseigné", 15, 75);
+  pdfInfoLine(doc, "IBAN :", profile.iban, 15, 85);
+  pdfInfoLine(doc, "Période :", getMonthLabel(currentMonthKey), 15, 95);
+
+  let y = 110;
+
+  doc.setFillColor(241, 245, 249);
+  doc.rect(15, y - 8, 180, 10, "F");
+
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(30, 41, 59);
+  doc.text("Date", 20, y);
+  doc.text("Libellé", 48, y);
+  doc.text("Montant", 160, y);
+
+  y += 12;
+
+  if (!transactions.length) {
+    doc.setFont("helvetica", "normal");
+    doc.text("Aucune transaction sur la période.", 20, y);
+  } else {
+    transactions.forEach(tx => {
+      if (y > 270) {
+        doc.addPage();
+        pdfHeader(doc, "Relevé transactions professionnelles");
+        y = 65;
+      }
+
+      const date = new Date(tx.createdAt || Date.now()).toLocaleDateString("fr-FR");
+      const amount = Number(tx.amount || 0);
+
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(60, 60, 60);
+
+      doc.text(date, 20, y);
+      doc.text(String(tx.label || "Transaction").slice(0, 55), 48, y);
+
+      doc.setTextColor(amount >= 0 ? 20 : 180, amount >= 0 ? 140 : 40, 60);
+      doc.text(pdfMoney(amount), 155, y);
+
+      y += 9;
+    });
+  }
+
+  pdfFooter(doc);
+  doc.save("transactions-professionnelles.pdf");
+}
+
+
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -4518,6 +5449,7 @@ watchAuth(async (user) => {
   if (page === "cards") await initCards(user);
   if (page === "admin") await initAdmin(user);
   if (page === "business") await initBusiness(user);
+  if (page === "businessDocuments") await initBusinessDocuments(user);
   if (page === "profile") await initProfile(user);
   if (page === "markets") await initMarkets(user);
   if (page === "bank") await initBank(user);

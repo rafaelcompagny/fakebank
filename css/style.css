@@ -1329,8 +1329,45 @@ textarea {
 }
 
 
+.payroll-explain {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+}
 
 
+.documents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.document-card {
+  padding: 20px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(56,189,248,.16), transparent 35%),
+    rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  transition: .25s;
+}
+
+.document-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(0,0,0,.25);
+}
+
+.document-icon {
+  font-size: 2.2rem;
+  margin-bottom: 12px;
+}
+
+.document-card p {
+  color: var(--muted);
+  font-size: .9rem;
+}
 
 
 
