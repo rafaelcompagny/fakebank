@@ -1459,3 +1459,550 @@ textarea {
   margin-top: 30px;
   color: var(--muted);
 }
+
+/* ===== Cryptex Bank × RafaTech ===== */
+
+.merchant-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.merchant-pending-counter {
+  min-width: 115px;
+  padding: 14px;
+  border-radius: 18px;
+  text-align: center;
+  background: rgba(37, 99, 235, .10);
+  border: 1px solid rgba(37, 99, 235, .18);
+}
+
+.merchant-pending-counter strong,
+.merchant-pending-counter span {
+  display: block;
+}
+
+.merchant-pending-counter strong {
+  font-size: 30px;
+}
+
+.merchant-pending-counter span {
+  font-size: 11px;
+  opacity: .68;
+}
+
+.merchant-partner-banner {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.merchant-partner-banner img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 18px;
+}
+
+.merchant-kicker {
+  display: block;
+  color: #2563eb;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-weight: 800;
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+
+.merchant-section {
+  margin-top: 25px;
+}
+
+.merchant-section-title {
+  margin-bottom: 12px;
+}
+
+.merchant-section-title h2 {
+  margin-bottom: 3px;
+}
+
+.merchant-payment-card {
+  border: 1px solid rgba(37, 99, 235, .16);
+  background: rgba(37, 99, 235, .035);
+  border-radius: 22px;
+  padding: 20px;
+  margin-bottom: 14px;
+}
+
+.merchant-payment-head {
+  display: grid;
+  grid-template-columns: 58px 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.merchant-logo {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: white;
+  display: grid;
+  place-items: center;
+}
+
+.merchant-logo.small {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.merchant-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.merchant-main h3 {
+  margin: 0;
+}
+
+.merchant-main p {
+  margin: 3px 0 0;
+  opacity: .62;
+  font-size: 12px;
+}
+
+.merchant-amount {
+  font-size: 23px;
+  white-space: nowrap;
+}
+
+.merchant-payment-details {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 1px;
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 14px;
+  background: rgba(0,0,0,.05);
+}
+
+.merchant-payment-details > div {
+  padding: 12px;
+  background: var(--card-bg, white);
+}
+
+.merchant-payment-details span,
+.merchant-payment-details strong {
+  display: block;
+}
+
+.merchant-payment-details span {
+  font-size: 10px;
+  opacity: .6;
+  margin-bottom: 4px;
+}
+
+.merchant-security-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(234, 179, 8, .08);
+}
+
+.merchant-security-note p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.merchant-payment-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.merchant-empty {
+  padding: 35px 20px;
+  text-align: center;
+  border: 1px dashed rgba(0,0,0,.14);
+  border-radius: 18px;
+}
+
+.merchant-empty > div {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 10px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, .10);
+  color: #16a34a;
+  font-size: 22px;
+}
+
+.merchant-empty p {
+  opacity: .62;
+}
+
+.merchant-history-row {
+  display: grid;
+  grid-template-columns: 42px 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0,0,0,.07);
+}
+
+.merchant-history-row > div:nth-child(2) strong,
+.merchant-history-row > div:nth-child(2) span {
+  display: block;
+}
+
+.merchant-history-row > div:nth-child(2) span {
+  opacity: .6;
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.merchant-status {
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.merchant-status-pending {
+  color: #a16207;
+  background: rgba(234,179,8,.10);
+}
+
+.merchant-status-approved {
+  color: #15803d;
+  background: rgba(34,197,94,.10);
+}
+
+.merchant-status-declined {
+  color: #b91c1c;
+  background: rgba(239,68,68,.10);
+}
+
+.merchant-status-muted {
+  opacity: .65;
+  background: rgba(0,0,0,.06);
+}
+
+@media (max-width: 760px) {
+  .merchant-payment-details {
+    grid-template-columns: repeat(2,1fr);
+  }
+
+  .merchant-payment-head {
+    grid-template-columns: 50px 1fr;
+  }
+
+  .merchant-amount {
+    grid-column: 2;
+  }
+
+  .merchant-history-row {
+    grid-template-columns: 42px 1fr;
+  }
+
+  .merchant-history-row > .merchant-status,
+  .merchant-history-row > strong {
+    grid-column: 2;
+  }
+
+  .merchant-payment-actions {
+    flex-direction: column-reverse;
+  }
+
+  .merchant-payment-actions button {
+    width: 100%;
+  }
+}
+
+.merchant-home-card {
+  border-color: rgba(37,99,235,.18);
+  background:
+    radial-gradient(circle at right, rgba(37,99,235,.08), transparent 32%),
+    var(--card-bg, white);
+}
+.merchant-home-card-content {
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  align-items:center;
+}
+.merchant-home-link {
+  white-space:nowrap;
+  font-weight:800;
+  color:#2563eb;
+  text-decoration:none;
+}
+@media(max-width:650px){
+  .merchant-home-card-content{align-items:flex-start;flex-direction:column;}
+}
+
+
+/* =========================================================
+   CRYPTEX × RAFATECH — DARK FIX
+   Corrige les fonds blancs hérités sur Paiements partenaires
+   ========================================================= */
+
+body[data-page="merchant-payments"] {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(34, 94, 168, .16), transparent 28%),
+    #050d24;
+  color: #f7f9ff;
+}
+
+body[data-page="merchant-payments"] .card,
+body[data-page="merchant-payments"] .merchant-payment-card,
+body[data-page="merchant-payments"] .merchant-partner-banner,
+body[data-page="merchant-payments"] .merchant-hero {
+  background: linear-gradient(145deg, rgba(13, 28, 65, .96), rgba(6, 17, 45, .96));
+  border: 1px solid rgba(65, 137, 255, .22);
+  color: #f7f9ff;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .18);
+}
+
+/* Bloc des 4 informations : plus aucun fond blanc */
+body[data-page="merchant-payments"] .merchant-payment-details {
+  background: rgba(20, 43, 88, .62);
+  border: 1px solid rgba(91, 151, 255, .24);
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+body[data-page="merchant-payments"] .merchant-payment-details > div {
+  background: rgba(10, 25, 58, .78) !important;
+  color: #f7f9ff !important;
+  border-right: 1px solid rgba(121, 164, 235, .18);
+}
+
+body[data-page="merchant-payments"] .merchant-payment-details > div:last-child {
+  border-right: 0;
+}
+
+body[data-page="merchant-payments"] .merchant-payment-details span {
+  color: #9fb0d2 !important;
+  opacity: 1;
+}
+
+body[data-page="merchant-payments"] .merchant-payment-details strong {
+  color: #ffffff !important;
+}
+
+/* Avertissement sécurité */
+body[data-page="merchant-payments"] .merchant-security-note {
+  background: rgba(245, 158, 11, .09);
+  border: 1px solid rgba(245, 158, 11, .22);
+  color: #f8fafc;
+}
+
+body[data-page="merchant-payments"] .merchant-security-note p {
+  color: #e5eaf5;
+}
+
+/* Historique */
+body[data-page="merchant-payments"] .merchant-history-row,
+body[data-page="merchant-payments"] .list-item {
+  background: rgba(9, 23, 54, .72);
+  color: #f7f9ff;
+  border-color: rgba(93, 139, 220, .16);
+}
+
+body[data-page="merchant-payments"] .merchant-history-row > div:nth-child(2) span {
+  color: #9fb0d2;
+  opacity: 1;
+}
+
+/* État vide */
+body[data-page="merchant-payments"] .merchant-empty {
+  background: rgba(9, 23, 54, .62);
+  border-color: rgba(91, 151, 255, .22);
+  color: #f7f9ff;
+}
+
+body[data-page="merchant-payments"] .merchant-empty p,
+body[data-page="merchant-payments"] .small {
+  color: #9fb0d2;
+}
+
+/* Boutons : explicites pour ne pas hériter de styles blancs */
+body[data-page="merchant-payments"] .approve-merchant-payment {
+  background: linear-gradient(135deg, #20b8f5, #2563eb);
+  color: #ffffff;
+  border: 1px solid rgba(82, 180, 255, .55);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, .22);
+}
+
+body[data-page="merchant-payments"] .approve-merchant-payment:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+body[data-page="merchant-payments"] .decline-merchant-payment {
+  background: rgba(239, 68, 68, .08) !important;
+  color: #ff7b7b !important;
+  border: 1px solid rgba(239, 68, 68, .35) !important;
+}
+
+body[data-page="merchant-payments"] .decline-merchant-payment:hover {
+  background: rgba(239, 68, 68, .15) !important;
+}
+
+/* Carte partenaire et compteur */
+body[data-page="merchant-payments"] .merchant-pending-counter {
+  background: rgba(37, 99, 235, .14);
+  border-color: rgba(70, 137, 255, .28);
+  color: #ffffff;
+}
+
+body[data-page="merchant-payments"] .merchant-logo {
+  background: rgba(255, 255, 255, .96);
+}
+
+/* Mobile */
+@media (max-width: 760px) {
+  body[data-page="merchant-payments"] .merchant-payment-details > div {
+    border-bottom: 1px solid rgba(121, 164, 235, .14);
+  }
+}
+
+
+/* =========================================================
+   CRYPTEX × RAFATECH — CORRECTIF CARTE ACCUEIL
+   Force la carte "RafaTech connecté" en thème sombre.
+   ========================================================= */
+
+body[data-page="home"] .merchant-home-card,
+.merchant-home-card {
+  background:
+    radial-gradient(circle at 92% 10%, rgba(37, 99, 235, .16), transparent 34%),
+    linear-gradient(145deg, #101a3d, #08132f) !important;
+  border: 1px solid rgba(74, 134, 255, .24) !important;
+  color: #f7f9ff !important;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .22) !important;
+  overflow: hidden;
+}
+
+body[data-page="home"] .merchant-home-card *,
+.merchant-home-card * {
+  color: inherit;
+}
+
+body[data-page="home"] .merchant-home-card .merchant-kicker,
+.merchant-home-card .merchant-kicker {
+  color: #4f8cff !important;
+}
+
+body[data-page="home"] .merchant-home-card h3,
+.merchant-home-card h3 {
+  color: #ffffff !important;
+}
+
+body[data-page="home"] .merchant-home-card .small,
+.merchant-home-card .small {
+  color: #aebbd7 !important;
+  opacity: 1 !important;
+}
+
+body[data-page="home"] .merchant-home-link,
+.merchant-home-link {
+  color: #67a1ff !important;
+  background: rgba(37, 99, 235, .10);
+  border: 1px solid rgba(79, 140, 255, .20);
+  padding: 10px 13px;
+  border-radius: 12px;
+  text-decoration: none;
+}
+
+body[data-page="home"] .merchant-home-link:hover,
+.merchant-home-link:hover {
+  background: rgba(37, 99, 235, .18);
+  color: #9bc0ff !important;
+}
+
+/* Évite qu'un style générique de .card ou d'un pseudo-élément
+   ajoute un voile blanc / glow clair sur cette carte. */
+body[data-page="home"] .merchant-home-card::before,
+body[data-page="home"] .merchant-home-card::after,
+.merchant-home-card::before,
+.merchant-home-card::after {
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* La carte reste propre sur mobile. */
+@media (max-width: 650px) {
+  .merchant-home-card {
+    padding: 18px !important;
+  }
+
+  .merchant-home-link {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+
+/* ===== Cryptex V12 — compte marchand RafaTech ===== */
+.rafatech-company-balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(37,99,235,.16), transparent 35%),
+    linear-gradient(145deg, #101a3d, #08132f) !important;
+  color: #fff !important;
+  border: 1px solid rgba(74,134,255,.22) !important;
+}
+
+.rafatech-company-balance img {
+  width: 78px;
+  height: 78px;
+  object-fit: cover;
+  border-radius: 20px;
+}
+
+.rafatech-company-balance h2 {
+  font-size: 38px;
+  margin: 5px 0;
+}
+
+.merchant-company-transaction {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 15px;
+  align-items: center;
+  padding: 13px 5px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.merchant-company-transaction div strong,
+.merchant-company-transaction div span {
+  display: block;
+}
+
+.merchant-company-transaction div span {
+  opacity: .6;
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.merchant-company-transaction > strong {
+  color: #4ade80;
+}

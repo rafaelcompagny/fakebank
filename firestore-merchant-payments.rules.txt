@@ -1,0 +1,84 @@
+// À INSÉRER dans : service cloud.firestore { match /databases/{database}/documents { ... } }
+//
+// Cette passerelle est prévue pour la SIMULATION RafaTech ↔ Cryptex.
+// RafaTech utilise un projet Firebase distinct et crée la demande sans session Cryptex.
+// Pour un vrai système de paiement, remplacer cette passerelle navigateur par un backend/Cloud Function.
+
+match /merchantPaymentRequests/{requestId} {
+  // RafaTech peut uniquement créer une nouvelle demande correctement structurée.
+  allow create: if request.auth == null
+    && request.resource.data.merchantId == "rafatech"
+    && request.resource.data.merchantName == "RafaTech"
+    && request.resource.data.status == "pending"
+    && request.resource.data.currency == "EUR"
+    && request.resource.data.amount is number
+    && request.resource.data.amount > 0
+    && request.resource.data.payerEmail is string
+    && request.resource.data.orderNumber is string;
+
+  // RafaTech doit pouvoir relire UNE demande connue par son ID pour suivre son statut.
+  // `get` autorisé, mais pas `list` pour une session anonyme.
+  allow get: if true;
+
+  // Un utilisateur Cryptex connecté peut lister uniquement ses propres demandes.
+  // La requête Cryptex utilise where("payerEmail", "==", request.auth.token.email).
+  allow list: if request.auth != null
+    && (
+      resource.data.payerEmail == request.auth.token.email
+      || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
+      || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+    );
+
+  // Seul le compte Cryptex correspondant à payerEmail peut traiter sa demande.
+  // Un administrateur Cryptex peut également intervenir.
+  allow update: if request.auth != null
+    && (
+      request.auth.token.email == resource.data.payerEmail
+      || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
+      || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+    );
+
+  allow delete: if request.auth != null
+    && (
+      get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
+      || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+    );
+}
+
+
+// Compte marchand interne RafaTech.
+// Il reçoit automatiquement les montants des paiements autorisés.
+match /merchantAccounts/{merchantId} {
+  // Le payeur doit pouvoir lire le solde courant dans la transaction atomique.
+  // Les administrateurs peuvent aussi consulter le compte depuis Cryptex.
+  allow get: if request.auth != null;
+
+  allow list: if request.auth != null
+    && (
+      get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
+      || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+    );
+
+  // Création initiale du compte RafaTech lors du premier achat.
+  allow create: if request.auth != null
+    && merchantId == "rafatech"
+    && request.resource.data.merchantId == "rafatech"
+    && request.resource.data.name == "RafaTech Entreprise"
+    && request.resource.data.balance is number
+    && request.resource.data.balance >= 0;
+
+  // Pour la simulation, un paiement connecté peut uniquement AUGMENTER
+  // le solde du compte marchand RafaTech.
+  allow update: if request.auth != null
+    && merchantId == "rafatech"
+    && request.resource.data.diff(resource.data).affectedKeys()
+      .hasOnly(['merchantId', 'name', 'email', 'balance', 'transactions', 'updatedAt'])
+    && request.resource.data.balance is number
+    && request.resource.data.balance >= resource.data.balance;
+
+  allow delete: if request.auth != null
+    && (
+      get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
+      || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+    );
+}

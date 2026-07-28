@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compte RafaTech Entreprise - Cryptex Bank</title>
+  <link rel="shortcut icon" href="img/logo.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="rafatech-business-account">
+  <div class="container">
+    <div class="topbar">
+      <div>
+        <span class="merchant-kicker">Compte entreprise partenaire</span>
+        <h1>RafaTech Entreprise</h1>
+        <p class="small">Compte marchand Cryptex alimenté automatiquement par les ventes RafaTech.</p>
+      </div>
+      <div class="top-actions">
+        <a href="merchant-payments.html" class="secondary">Paiements partenaires</a>
+        <button id="logoutBtn" class="secondary">Se déconnecter</button>
+      </div>
+    </div>
+
+    <div class="card rafatech-company-balance">
+      <div>
+        <p class="small">Solde marchand</p>
+        <h2 id="companyBalance">0,00 €</h2>
+        <p class="small">rafatech@cryptex.fr</p>
+      </div>
+      <img src="img/rafatech.webp" alt="RafaTech">
+    </div>
+
+    <div class="card">
+      <h3>Derniers gains RafaTech</h3>
+      <div id="companyTransactions">
+        <div class="list-item">Chargement...</div>
+      </div>
+    </div>
+  </div>
+
+  <nav>
+    <a href="home.html"><span>🏠</span><small>Accueil</small></a>
+    <a href="merchant-payments.html"><span>🛍️</span><small>Achats</small></a>
+    <a href="merchant-account.html"><span>🏢</span><small>RafaTech</small></a>
+    <a href="profile.html"><span>👤</span><small>Profil</small></a>
+  </nav>
+
+  <script type="module" src="js/merchant-account.js"></script>
+</body>
+</html>

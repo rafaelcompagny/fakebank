@@ -148,39 +148,82 @@ async function adminChangeMoney(currentUid, targetUid, mode) {
   const currentProfile = await getUserProfile(currentUid);
 
   if (!canModifyMoney(currentProfile)) {
-    alert("Action refusée : seul un administrateur peut modifier l'argent.");
+    alert("Action refusée : seul un administrateur peut modifier le solde.");
     return;
   }
 
-  const input = document.querySelector(`.admin-money-input[data-uid="${targetUid}"]`);
-  const amount = Number(input?.value || 0);
+  const amountInput = document.querySelector(
+    `.admin-money-input[data-uid="${targetUid}"]`
+  );
+
+  const reasonInput = document.querySelector(
+    `.admin-money-reason[data-uid="${targetUid}"]`
+  );
+
+  const amount = Number(amountInput?.value || 0);
+  const reason = reasonInput?.value.trim() || "";
 
   if (!amount || amount <= 0) {
-    alert("Montant invalide.");
+    alert("Entre un montant valide.");
+    return;
+  }
+
+  if (!reason) {
+    alert("Le motif de l'opération est obligatoire.");
     return;
   }
 
   const profile = await getUserProfile(targetUid);
   if (!profile) return;
 
-  profile.accounts = profile.accounts || { courant: 0, epargne: 0 };
+  profile.accounts =
+    profile.accounts || { courant: 0, epargne: 0 };
+
   profile.history = profile.history || [];
   profile.transactions = profile.transactions || [];
   profile.notifications = profile.notifications || [];
 
   if (mode === "add") {
+
     profile.accounts.courant += amount;
-    addTransaction(profile, "Admin : ajout d'argent", amount, "admin");
+
+    addTransaction(
+      profile,
+      `Régularisation bancaire : ${reason}`,
+      amount,
+      "admin_adjustment"
+    );
+
+    addNotification(
+      profile,
+      "Crédit manuel",
+      `${formatMoney(amount)} ont été crédités sur votre compte. Motif : ${reason}`,
+      "success"
+    );
   }
 
-  if (mode === "remove") {
-    if ((profile.accounts.courant || 0) < amount) {
-      alert("Solde courant insuffisant.");
+  else if (mode === "remove") {
+
+    if (!canPayWithOverdraft(profile, amount)) {
+      alert("Cette opération dépasserait le découvert autorisé.");
       return;
     }
 
     profile.accounts.courant -= amount;
-    addTransaction(profile, "Admin : retrait d'argent", -amount, "admin");
+
+    addTransaction(
+      profile,
+      `Régularisation bancaire : ${reason}`,
+      -amount,
+      "admin_adjustment"
+    );
+
+    addNotification(
+      profile,
+      "Débit manuel",
+      `${formatMoney(amount)} ont été débités de votre compte. Motif : ${reason}`,
+      "info"
+    );
   }
 
   await updateUserProfile(targetUid, {
@@ -189,6 +232,11 @@ async function adminChangeMoney(currentUid, targetUid, mode) {
     transactions: profile.transactions,
     notifications: profile.notifications
   });
+
+  amountInput.value = "";
+  reasonInput.value = "";
+
+  alert("Opération effectuée.");
 }
 
 async function initAdmin(user) {
@@ -1311,6 +1359,7 @@ async function renderAdmin(currentUid) {
             <input class="admin-money-input" data-uid="${user.uid}" type="number" placeholder="Montant">
             <button class="admin-add-money-btn" data-uid="${user.uid}">Ajouter</button>
             <button class="admin-remove-money-btn secondary" data-uid="${user.uid}">Enlever</button>
+            <input class="admin-money-reason" data-uid="${user.uid}" type="text" maxlength="100" placeholder="Motif de l'opération...">
           </div>
         ` : `
           <p class="small">Accès conseiller : modification d'argent désactivée.</p>
@@ -1356,6 +1405,8 @@ async function renderAdmin(currentUid) {
       await renderAdmin(currentUid);
     };
   });
+
+  
 }
 
 async function adminPermanentOverdraft(targetUid, amount) {

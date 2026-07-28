@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Paiements partenaires - Cryptex Bank</title>
+  <link rel="shortcut icon" href="img/logo.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="merchant-payments">
+  <div class="container">
+    <div class="topbar">
+      <div>
+        <h1>Paiements partenaires</h1>
+        <p class="small">Autorise les achats envoyés par les partenaires Cryptex Bank.</p>
+      </div>
+      <div class="top-actions">
+        <a href="merchant-account.html" class="secondary">Compte RafaTech</a>
+        <button id="logoutBtn" class="secondary">Se déconnecter</button>
+      </div>
+    </div>
+
+    <div class="card merchant-hero">
+      <div>
+        <p class="small">Compte Cryptex</p>
+        <h2 id="merchantCurrentBalance">0,00 €</h2>
+        <p class="small" id="merchantAccountEmail"></p>
+      </div>
+      <div class="merchant-pending-counter">
+        <strong id="merchantPendingCount">0</strong>
+        <span>en attente</span>
+      </div>
+    </div>
+
+    <div class="card merchant-partner-banner">
+      <img src="img/rafatech.webp" alt="RafaTech">
+      <div>
+        <span class="merchant-kicker">Partenaire connecté</span>
+        <h3>RafaTech</h3>
+        <p class="small">Les demandes d'achat RafaTech sont vérifiées et autorisées depuis Cryptex Bank.</p>
+      </div>
+    </div>
+
+    <section class="merchant-section">
+      <div class="merchant-section-title">
+        <div>
+          <h2>À autoriser</h2>
+          <p class="small">Aucun débit n'est effectué avant ton accord.</p>
+        </div>
+      </div>
+      <div id="merchantPendingList"></div>
+    </section>
+
+    <section class="merchant-section">
+      <div class="merchant-section-title">
+        <div>
+          <h2>Historique partenaire</h2>
+          <p class="small">Tes dernières demandes RafaTech.</p>
+        </div>
+      </div>
+      <div id="merchantHistoryList"></div>
+    </section>
+  </div>
+
+  <footer class="cryptex-footer">
+    <div class="footer-logo">
+      <h2>CRYPTEX BANK</h2>
+      <p>La nouvelle génération de banque virtuelle.</p>
+    </div>
+    <div class="footer-links">
+      <a href="partenaires.html">Partenaires</a>
+      <a href="mentions.html">Mentions légales</a>
+      <a href="confidentialite.html">Confidentialité</a>
+    </div>
+    <div class="footer-team">
+      <p><strong>Partenaire connecté :</strong> RafaTech</p>
+      <p><strong>Mode :</strong> Simulation</p>
+    </div>
+  </footer>
+
+  <br><br><br><br><br><br>
+
+  <nav>
+    <a href="home.html"><span>🏠</span><small>Accueil</small></a>
+    <a href="payments.html"><span>💸</span><small>Virements</small></a>
+    <a href="merchant-payments.html"><span>🛍️</span><small>Achats</small></a>
+    <a href="cards.html"><span>💳</span><small>Cartes</small></a>
+    <a href="markets.html"><span>📊</span><small>Marchés</small></a>
+    <a id="businessNavLink" href="business.html" style="display:none;">
+      <span>🏢</span><small>Entreprise</small>
+    </a>
+    <a href="bank.html"><span>🏦</span><small>Banque</small></a>
+    <a href="casino.html"><span>🎰</span><small>Casino</small></a>
+    <a href="profile.html"><span>👤</span><small>Profil</small></a>
+    <a id="adminNavLink" href="admin.html" style="display:none;">
+      <span>🛡️</span><small>Admin</small>
+    </a>
+  </nav>
+
+  <script type="module" src="js/merchant-payments.js"></script>
+</body>
+</html>
